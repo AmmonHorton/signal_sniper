@@ -1,4 +1,4 @@
-# 📦 DSP Library Dependencies
+# DSP Library Dependencies
 
 This document lists the dependencies required to build and run the DSP Library.  
 Most Python dependencies (**NumPy, SciPy, pytest**) are installed automatically  
@@ -8,7 +8,7 @@ Below are the dependencies that must be installed **manually** before building.
 
 ---
 
-## **🛠️ Required System Dependencies**
+## ** Required System Dependencies**
 These dependencies **are NOT handled by the virtual environment** and must be installed manually.
 
 | Dependency  | Purpose |
@@ -22,9 +22,9 @@ These dependencies **are NOT handled by the virtual environment** and must be in
 
 ---
 
-## **🏗️ Manual Installation Instructions**
+## ** Manual Installation Instructions**
 
-### **🖥️ Ubuntu (WSL)**
+### ** Ubuntu (WSL)**
 Run the following command to install the required C++ libraries:
 
 ```sh
@@ -32,4 +32,12 @@ sudo apt update && sudo apt install -y \
     build-essential cmake python3-dev \
     libeigen3-dev libfftw3-dev libgtest-dev pybind11-dev
 ```
+### Note: gtest must be built manually
+
+```sh
+cd /usr/src/gtest
+sudo cmake . && sudo make
+sudo cp lib/*.a /usr/lib
+```
+
 
