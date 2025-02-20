@@ -1,36 +1,35 @@
 # 📦 DSP Library Dependencies
 
-This document lists the dependencies required to build and run the DSP Library.
+This document lists the dependencies required to build and run the DSP Library.  
+Most Python dependencies (**NumPy, SciPy, pytest**) are installed automatically  
+when running the debug setup script (`scripts/setup_debug_env.sh`).  
 
-## 🛠️ Build Dependencies
+Below are the dependencies that must be installed **manually** before building.
 
-### 1️⃣ **Required C++ Libraries**
+---
+
+## **🛠️ Required System Dependencies**
+These dependencies **are NOT handled by the virtual environment** and must be installed manually.
+
 | Dependency  | Purpose |
 |------------|---------|
 | **Eigen3** | Linear algebra (used for signal processing) |
 | **FFTW3**  | Fast Fourier Transform library |
 | **GoogleTest** | Unit testing framework |
-| **Pybind11** | Python bindings for C++ |
+| **CMake** | Required for building the project |
+| **Pybind11** | C++ bindings for Python |
 
-### 2️⃣ **Python Dependencies**
-| Dependency  | Purpose |
-|------------|---------|
-| **NumPy**  | Numerical computations |
-| **SciPy**  | Scientific computing and signal processing |
-| **Pybind11** | Required for Python bindings |
-| **pytest** | Used for testing the Python API |
 
 ---
 
-## 🏗️ Installation Instructions
+## **🏗️ Manual Installation Instructions**
 
 ### **🖥️ Ubuntu (WSL)**
-Run the following commands to install dependencies:
+Run the following command to install the required C++ libraries:
+
 ```sh
 sudo apt update && sudo apt install -y \
     build-essential cmake python3-dev \
-    libeigen3-dev libfftw3-dev libgtest-dev \
-    python3-pip python3-venv
-
-pip install -r python/requirements.txt
+    libeigen3-dev libfftw3-dev libgtest-dev pybind11-dev
+```
 
