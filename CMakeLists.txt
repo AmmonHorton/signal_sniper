@@ -3,12 +3,14 @@ project(Signal_Sniper VERSION 1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_SUPPRESS_REGENERATION OFF)
 
 # Options to enable/disable components
 option(ENABLE_TESTS "Enable GoogleTest Unit Tests" OFF)
 option(ENABLE_PYBIND "Enable Pybind11 Python Bindings" OFF)
 option(BUILD_RPM "Build an RPM package" OFF)
 option(BUILD_DEB "Build a Debian package" OFF)
+option(INSTALL_TO_SYSTEM "Install to the local system" OFF)
 
 # Find Eigen3 (Header-only, so we only need include directory)
 find_path(EIGEN3_INCLUDE_DIR Eigen/Core
@@ -44,8 +46,17 @@ else()
 endif()
 
 # Automatically find all source and header files
-file(GLOB_RECURSE SIGNAL_SNIPER_HEADERS inc/**/*.h)
-file(GLOB_RECURSE SIGNAL_SNIPER_SOURCES src/**/*.cc)
+file(GLOB_RECURSE SIGNAL_SNIPER_SOURCES LIST_DIRECTORIES false RELATIVE ${CMAKE_SOURCE_DIR} CONFIGURE_DEPENDS src/*.cc)
+file(GLOB_RECURSE SIGNAL_SNIPER_HEADERS LIST_DIRECTORIES false RELATIVE ${CMAKE_SOURCE_DIR} CONFIGURE_DEPENDS inc/*.h)
+
+# Force CMake to reconfigure when the src/ or inc/ directories change
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/inc
+)
+
+# Debugging output: Show all detected sources
+message(STATUS "Discovered source files: ${SIGNAL_SNIPER_SOURCES}")
 
 # Core Signal Sniper Library
 add_library(signal_sniper SHARED ${SIGNAL_SNIPER_SOURCES})
@@ -55,26 +66,62 @@ target_include_directories(signal_sniper PUBLIC inc ${EIGEN3_INCLUDE_DIR})
 target_link_libraries(signal_sniper PRIVATE FFTW3::FFTW3)
 
 # Install library and headers
-install(TARGETS signal_sniper DESTINATION lib)
-install(DIRECTORY inc/ DESTINATION include)  # Install all headers while preserving structure
+if (INSTALL_TO_SYSTEM)
+    install(TARGETS signal_sniper DESTINATION lib)
+    install(DIRECTORY inc/ DESTINATION include)  # Install all headers while preserving structure
+endif()
 
 # GoogleTest (optional)
 if(ENABLE_TESTS)
     enable_testing()
     find_package(GTest REQUIRED)
-    file(GLOB_RECURSE TEST_SOURCES tests/**/*.cc)
-    add_executable(test_signal_sniper ${TEST_SOURCES})
-    target_link_libraries(test_signal_sniper PRIVATE GTest::GTest GTest::Main signal_sniper)
-    add_test(NAME SignalSniperTests COMMAND test_signal_sniper)
+    
+    file(GLOB_RECURSE TEST_SOURCES RELATIVE ${CMAKE_SOURCE_DIR} tests/*.cc)
+    message(STATUS "Discovered test source files: ${TEST_SOURCES}")
+
+    if(TEST_SOURCES)
+        add_executable(test_signal_sniper ${TEST_SOURCES})
+        target_link_libraries(test_signal_sniper PRIVATE GTest::GTest GTest::Main signal_sniper)
+        add_test(NAME SignalSniperTests COMMAND test_signal_sniper)
+    else()
+        message(WARNING "No test files found in tests/ directory. Skipping test target.")
+    endif()
 endif()
 
 # Pybind11 Python Bindings (optional)
 if(ENABLE_PYBIND)
-    find_package(Python3 COMPONENTS Development REQUIRED)
+    # Check if a virtual environment exists and use it if available
+    if(EXISTS "${CMAKE_SOURCE_DIR}/.venv/bin/python3")
+        set(Python3_EXECUTABLE "${CMAKE_SOURCE_DIR}/.venv/bin/python3")
+        message(STATUS "Using virtual environment Python: ${Python3_EXECUTABLE}")
+    endif()
+    
+    # Run find package which will set python3_SITELIB
+    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
     find_package(pybind11 REQUIRED)
-    file(GLOB_RECURSE PYBIND_SOURCES python_bindings/**/*.cc)
-    add_library(signal_sniper_python MODULE ${PYBIND_SOURCES})
-    target_link_libraries(signal_sniper_python PRIVATE pybind11::module signal_sniper)
+    
+    # Ensure Python3_SITELIB is set
+    if(NOT Python3_SITELIB)
+        message(FATAL_ERROR "CMake did not detect Python3_SITELIB. Ensure Python3 is properly found.")
+    endif()
+
+    
+    file(GLOB_RECURSE PYBIND_SOURCES RELATIVE ${CMAKE_SOURCE_DIR} pybind_src/*.cc)
+    if(PYBIND_SOURCES)
+        message(STATUS "Discovered pybind source files: ${PYBIND_SOURCES}")
+
+        # Add the poybind module and link against the other built library
+        pybind11_add_module(signal_sniper_python ${PYBIND_SOURCES})
+        # Set RPATH so that signal_sniper_python.so can find libsignal_sniper.so
+        set_target_properties(signal_sniper_python PROPERTIES INSTALL_RPATH "\$ORIGIN")
+        target_link_libraries(signal_sniper_python PRIVATE signal_sniper)
+
+        message("Installing pybind modules at: ${Python3_SITELIB}")
+        install(TARGETS signal_sniper DESTINATION ${Python3_SITELIB})
+        install(TARGETS signal_sniper_python DESTINATION ${Python3_SITELIB})
+    else()
+        message(WARNING "No test files found in tests/ directory. Skipping test target.")
+    endif()
 endif()
 
 # RPM Packaging (optional)
@@ -89,9 +136,10 @@ endif()
 
 # Adding cleaning target
 # Add a custom clean target
-add_custom_target(clean
+add_custom_target(cln
     COMMAND ${CMAKE_COMMAND} --build . --target clean
     COMMAND rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Makefile
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMENT "Cleaning all build files..."
 )
+

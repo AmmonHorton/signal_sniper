@@ -8,4 +8,3 @@ public:
 };
 
 #endif // TEST_MODULE_HPP
-
