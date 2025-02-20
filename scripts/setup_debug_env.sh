@@ -11,7 +11,7 @@ mkdir -p build && cd build
 cmake .. -DENABLE_TESTS=ON -DENABLE_PYBIND=ON
 
 # Compile everything
-make -j$(nproc)
+make 
 
 echo "✅ Debug Build Complete."
 

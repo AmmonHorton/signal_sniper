@@ -1,0 +1,50 @@
+# --- CMake Build Directories ---
+build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# --- Object & Binary Files ---
+*.o
+*.obj
+*.so
+*.dll
+*.a
+*.lib
+*.exe
+*.out
+*.dSYM/
+
+# --- Python Virtual Environment ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# --- Logs, Debug, and Temp Files ---
+*.log
+*.tmp
+*.swp
+*.swo
+*.swn
+
+# --- Test & Coverage Files ---
+*.gcda
+*.gcno
+*.gcov
+coverage/
+
+# --- Packaging & Distribution ---
+dist/
+*.tar.gz
+*.zip
+*.rpm
+*.deb
+
+# --- Editor & OS Specific Files ---
+*.DS_Store  # macOS Finder metadata
+Thumbs.db   # Windows Explorer metadata
+.idea/      # JetBrains IDE (CLion, PyCharm)
+.vscode/    # VS Code settings
