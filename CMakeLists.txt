@@ -105,8 +105,8 @@ if(ENABLE_PYBIND)
         message(FATAL_ERROR "CMake did not detect Python3_SITELIB. Ensure Python3 is properly found.")
     endif()
 
-    
-    file(GLOB_RECURSE PYBIND_SOURCES RELATIVE ${CMAKE_SOURCE_DIR} pybind_src/*.cc)
+    file(GLOB_RECURSE PYBIND_SOURCES LIST_DIRECTORIES false RELATIVE ${CMAKE_SOURCE_DIR} CONFIGURE_DEPENDS pybind_src/*.cc)
+
     if(PYBIND_SOURCES)
         message(STATUS "Discovered pybind source files: ${PYBIND_SOURCES}")
 
