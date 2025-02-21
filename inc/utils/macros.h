@@ -64,7 +64,7 @@ class Logger {
 
 
 // Define check macros
-#define EXPECT_EQ(condition, message) \
+#define EXPECT_TRUE(condition, message) \
     do { \
         if (!(condition)) { \
             std::ostringstream oss; \

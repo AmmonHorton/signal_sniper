@@ -36,16 +36,14 @@ Convolve::~Convolve() {
 }
 
 void Convolve::create_plans() {
-    std::cout << "Creating FFTW plans" << std::endl;
     plan_forward_ = fftw_plan_dft_1d(fft_block_size_, nullptr, nullptr, FFTW_FORWARD, FFTW_ESTIMATE);
     plan_backward_ = fftw_plan_dft_1d(fft_block_size_, nullptr, nullptr, FFTW_BACKWARD, FFTW_ESTIMATE);
-    EXPECT_EQ(plan_forward_ && plan_backward_, "Failed to create FFTW plans");
-    std::cout << "FFTW plans created successfully" << std::endl;
+    EXPECT_TRUE(plan_forward_ && plan_backward_, "Failed to create FFTW plans");
 }
 
 void Convolve::load_filter(const cdouble_vec& filter, bool is_corelation) {
-    EXPECT_EQ(filter.size() <= fft_block_size_, "Filter size must be less than or equal to the fft block size");
-    std::cout << "loadinngggg" << std::endl;
+    EXPECT_TRUE(filter.size() <= fft_block_size_, "Filter size must be less than or equal to the fft block size");
+
     cdouble_vec filter_padded(fft_block_size_, cdouble(0, 0));
     if (is_corelation) {
         std::transform(filter.begin(), filter.end(), filter_padded.rbegin(), [](const cdouble& val) {
@@ -54,14 +52,11 @@ void Convolve::load_filter(const cdouble_vec& filter, bool is_corelation) {
     } else {
         std::copy(filter.begin(), filter.end(), filter_padded.begin());
     }
-    std::cout << "loaded" << std::endl;
     fftw_execute_dft(plan_forward_, reinterpret_cast<fftw_complex*>(filter_padded.data()), reinterpret_cast<fftw_complex*>(fft_filter_.data()));
-    std::cout << "fftt ype shit" << std::endl;
 }
 
 cdouble_vec Convolve::overlap_save(const cdouble_vec& input, bool propogate_delay) {
-    EXPECT_EQ(input.size() >= fitler_size_, "Input size must be greater than or equal to the filter size");
-    std::cout << "hell yeahj brother" << std::endl;
+    EXPECT_TRUE(input.size() >= fitler_size_, "Input size must be greater than or equal to the filter size");
     size_t output_size = input.size();
 
     // if propogate delay is true, make sure the vector we are referencing is bigger
@@ -142,7 +137,7 @@ cdouble_vec correlate(const cdouble_vec& input, const cdouble_vec& filter, bool 
             for (size_t jj = 1; jj <= filter.size(); jj++) {
                 // This if statement hsould only be untrue when using propogate delay
                 if (ii - jj >= 0 && ii - jj < input.size()) {
-                    output[ii] += input[ii - jj] * filter[jj];
+                    output[ii] += input[ii] * std::conj(filter[jj]);
                 }
             }
         }
