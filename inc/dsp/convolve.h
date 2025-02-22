@@ -10,6 +10,9 @@
 
 namespace dsp {
 namespace convolve {
+
+using dsp::fft::FFT1D;
+
 class Convolve {
 public:
     // Constructor accepting a filter vector
@@ -17,9 +20,6 @@ public:
 
     // Constructor accepting a size
     Convolve(int size, bool measure_best_fft_size = true);
-
-    // Destructor
-    ~Convolve();
 
     // Overlap-save convolution
     cdouble_vec overlap_save(const cdouble_vec& input, bool propogate_delay = false);
@@ -33,8 +33,7 @@ public:
     private:
     size_t fitler_size_;
     size_t fft_block_size_;
-    fftw_plan plan_forward_;
-    fftw_plan plan_backward_;
+    FFT1D fft_plan_;
     cdouble_vec fft_filter_;
     cdouble_vec overlap_;
     

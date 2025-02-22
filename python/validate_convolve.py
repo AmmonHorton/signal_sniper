@@ -2,16 +2,16 @@ import numpy as np
 import signal_sniper_python as ssp
 
 def validate_convolve():
-    input_array = np.array([1+1j, 2+2j, 3+3j, 4+4j], dtype=np.complex128)
+    input_array = np.array([1+1j, 2+2j, 3+3j, 4+4j, 1+1j, 2+2j, 3+3j, 4+4j, 1+1j, 2+2j, 3+3j, 4+4j, 1+1j, 2+2j, 3+3j, 4+4j, 1+1j, 2+2j, 3+3j, 4+4j], dtype=np.complex128)
     filter_array = np.array([1+1j, 1+1j], dtype=np.complex128)
 
     # Using NumPy for reference
-    numpy_convolve = np.convolve(input_array, filter_array, mode='full')
-    numpy_correlate = np.correlate(input_array, filter_array, mode='full')
+    numpy_convolve = np.convolve(input_array, filter_array, mode='same')
+    numpy_correlate = np.correlate(input_array, filter_array)
 
     # Using signal_sniper_python
-    convolve_result = ssp.convolve(input_array, filter_array, propogate_delay=True, fft_overlap_save=False)
-    correlate_result = ssp.correlate(input_array, filter_array, fft_overlap_save=False)
+    convolve_result = np.round(ssp.convolve(input_array, filter_array, propogate_delay=True, fft_overlap_save=False))
+    correlate_result = np.round(ssp.correlate(input_array, filter_array, fft_overlap_save=False))
 
     print("NumPy Convolve Result: ", numpy_convolve)
     print("Signal Sniper Convolve Result: ", convolve_result)

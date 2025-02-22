@@ -14,7 +14,7 @@ Convolve::Convolve(const cdouble_vec& filter, bool is_corelation, bool measure_b
         fft_block_size_ = fitler_size_ * 8;
     }
     fft_filter_.resize(fft_block_size_);
-    create_plans();
+    fft_plan_ = std::move(FFT1D(fft_block_size_));
     load_filter(filter, is_corelation);
 }
 
@@ -27,19 +27,9 @@ Convolve::Convolve(int size, bool measure_best_fft_size) : fitler_size_(size) {
         fft_block_size_ = fitler_size_ * 8;
     }
     fft_filter_.resize(fft_block_size_);
-    create_plans();
+    fft_plan_ = std::move(FFT1D(fft_block_size_));
 }
 
-Convolve::~Convolve() {
-    fftw_destroy_plan(plan_forward_);
-    fftw_destroy_plan(plan_backward_);
-}
-
-void Convolve::create_plans() {
-    plan_forward_ = fftw_plan_dft_1d(fft_block_size_, nullptr, nullptr, FFTW_FORWARD, FFTW_ESTIMATE);
-    plan_backward_ = fftw_plan_dft_1d(fft_block_size_, nullptr, nullptr, FFTW_BACKWARD, FFTW_ESTIMATE);
-    EXPECT_TRUE(plan_forward_ && plan_backward_, "Failed to create FFTW plans");
-}
 
 void Convolve::load_filter(const cdouble_vec& filter, bool is_corelation) {
     EXPECT_TRUE(filter.size() <= fft_block_size_, "Filter size must be less than or equal to the fft block size");
@@ -52,7 +42,7 @@ void Convolve::load_filter(const cdouble_vec& filter, bool is_corelation) {
     } else {
         std::copy(filter.begin(), filter.end(), filter_padded.begin());
     }
-    fftw_execute_dft(plan_forward_, reinterpret_cast<fftw_complex*>(filter_padded.data()), reinterpret_cast<fftw_complex*>(fft_filter_.data()));
+    fft_plan_.execute(filter, fft_filter_, FFTW_FORWARD);
 }
 
 cdouble_vec Convolve::overlap_save(const cdouble_vec& input, bool propogate_delay) {
@@ -75,24 +65,26 @@ cdouble_vec Convolve::overlap_save(const cdouble_vec& input, bool propogate_dela
 
     cdouble_vec input_block(fft_block_size_);
     cdouble_vec fft_output(fft_block_size_);
-
-    while (input_iter <= fft_input.end()) {
+    std::cout << "Starting overlap save itertions, block size:" << fft_block_size_ << std::endl;
+    while (input_iter < fft_input.end() - 1) {
         size_t block_size = std::min(fft_block_size_, static_cast<size_t>(std::distance(input_iter, fft_input.end())));
         
         // Copy data amd perform initial fft
         std::copy(input_iter, input_iter + block_size, input_block.begin());
         std::fill(input_block.begin() + block_size, input_block.end(), cdouble(0, 0));
-        fftw_execute_dft(plan_forward_, reinterpret_cast<fftw_complex*>(input_block.data()), reinterpret_cast<fftw_complex*>(fft_output.data()));
+        fft_plan_.execute(input_block, fft_output, FFTW_FORWARD);
 
         // Perform element-wise multiplication and inverse fft
         std::transform(fft_output.begin(), fft_output.end(), fft_filter_.begin(), fft_output.begin(), std::multiplies<cdouble>());
-        fftw_execute_dft(plan_backward_, reinterpret_cast<fftw_complex*>(fft_output.data()), reinterpret_cast<fftw_complex*>(input_block.data()));
+        fft_plan_.execute(fft_output, input_block, FFTW_BACKWARD);
 
         // Put the results in the output vector
         std::move(input_block.begin() + fitler_size_ - 1, input_block.end(), output_iter);
         input_iter += block_size - fitler_size_ + 1;
         output_iter += block_size - fitler_size_ + 1;
+        std::cout << std::distance(input_iter, fft_input.end()) << std::endl;    
     }
+    std::cout << "Finished overlap save itertions" << std::endl;
     return output;
 }
 
