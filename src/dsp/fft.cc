@@ -10,7 +10,7 @@ int find_optimal_fft_size(int desiredSize) {
 
     // Generate a list of power-of-two FFT sizes within the range
     std::vector<int> candidateSizes;
-    for (int size = 1; size <= maxSize; size *= 2) {
+    for (int size = minSize; size <= maxSize; size++) {
         if (size >= minSize) {
             candidateSizes.push_back(size);
         }
@@ -90,6 +90,8 @@ FFT_Base::~FFT_Base() {
 FFT_Base::FFT_Base(FFT_Base&& other) noexcept 
     : size_(other.size_), plan_forward_(other.plan_forward_), plan_backward_(other.plan_backward_), 
       in_(other.in_), out_(other.out_) {
+    
+    other.size_ = 0;
     other.plan_forward_ = nullptr;
     other.plan_backward_ = nullptr;
     other.in_ = nullptr;
@@ -110,6 +112,7 @@ FFT_Base& FFT_Base::operator=(FFT_Base&& other) noexcept {
         in_ = other.in_;
         out_ = other.out_;
 
+        other.size_ = 0;
         other.plan_forward_ = nullptr;
         other.plan_backward_ = nullptr;
         other.in_ = nullptr;
@@ -120,6 +123,8 @@ FFT_Base& FFT_Base::operator=(FFT_Base&& other) noexcept {
 
 void FFT_Base::execute(const cdouble_vec& in, cdouble_vec& out, int sign) {
     if (size_ == 0) return;
+    CHECK_TRUE(in.size() == size_, "Input vector size does not match FFT size");
+    CHECK_TRUE(out.size() == size_, "Output vector size does not match FFT size");
 
     // Copy input data to allocated FFTW buffer
     std::copy(in.begin(), in.begin() + size_, reinterpret_cast<std::complex<double>*>(in_));

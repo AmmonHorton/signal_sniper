@@ -76,8 +76,8 @@ if(ENABLE_TESTS)
     enable_testing()
     find_package(GTest REQUIRED)
     
-    file(GLOB_RECURSE TEST_SOURCES RELATIVE ${CMAKE_SOURCE_DIR} tests/*.cc)
-    message(STATUS "Discovered test source files: ${TEST_SOURCES}")
+    file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false RELATIVE ${CMAKE_SOURCE_DIR} CONFIGURE_DEPENDS tests/*.cc)
+    message("Discovered test source files: ${TEST_SOURCES}")
 
     if(TEST_SOURCES)
         add_executable(test_signal_sniper ${TEST_SOURCES})
