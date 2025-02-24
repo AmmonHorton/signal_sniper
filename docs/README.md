@@ -4,20 +4,28 @@ Signal Sniper is an open-source DSP library designed for various signal and comm
 
 ## Features
 
-- Fast Fourier Transform (FFT) using FFTW3
-- Convolution and correlation operations
+- RPM & DEB package build and installation
 - Python bindings using Pybind11
 - Unit testing with GoogleTest
+- DSP functionality like overlap save convolution, sinc filtering, Polyphase Channelizing
+
+### Proposed features
+- FEC like LDPC and Polar encoding/decoding
+- Modulation/Demodulation for different QAM and PSK schemes
 
 ## Dependencies
 
 Before building the project, ensure that the following dependencies are installed:
 
+### Required dependencies
+- **CMake**: Build system
 - **Eigen3**: Linear algebra library
 - **FFTW3**: Fast Fourier Transform library
+
+### Development Dependencies
 - **GoogleTest**: Unit testing framework
-- **CMake**: Build system
 - **Pybind11**: C++ bindings for Python
+- **python3**: up-to-date python for venv where packages in python/requirements.txt will be used
 
 For detailed installation instructions, refer to the [DEPENDENCIES.md](DEPENDENCIES.md) file.
 
@@ -99,11 +107,23 @@ If you prefer to run CMake manually, you can use the following flags to customiz
 
 ## Running Tests
 
-If you have enabled tests during the build, you can run the tests using CTest:
+If you have enabled tests during the build, you can run the gtests from the project root using :
 
 ```
-cd build
-ctest
+./test_signal_sniper
+```
+You can filter particular tests like so:
+
+for test:
+```cpp
+TEST(MY_TEST_MODULE, my_test_name) {
+... test_content ...
+}
+
+```
+by passing this command line arg:
+```sh
+./test_signal_sniper --gtest_filter=MY_TEST_MODULE.my_test_name
 ```
 
 ## License
