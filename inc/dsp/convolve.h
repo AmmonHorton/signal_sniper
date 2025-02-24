@@ -21,6 +21,9 @@ public:
     // Constructor accepting a size
     Convolve(int size, bool measure_best_fft_size = true);
 
+    // Load a new filter
+    void load_filter(const cdouble_vec& filter, bool is_corelation = false);
+    
     // Overlap-save convolution
     cdouble_vec overlap_save(const cdouble_vec& input, bool propogate_delay = false);
     
@@ -30,6 +33,7 @@ public:
     // Correlate function
     cdouble_vec correlate(const cdouble_vec& input, const cdouble_vec& filter);
     
+
     private:
     size_t fitler_size_;
     size_t fft_block_size_;
@@ -37,8 +41,6 @@ public:
     cdouble_vec fft_filter_;
     cdouble_vec overlap_;
     
-    // Load a new filter
-    void load_filter(const cdouble_vec& filter, bool is_corelation);
     
     // Create FFTW plans
     void create_plans();
