@@ -75,7 +75,10 @@ cdouble_vec Polyphase::sum_branches(const Eigen::MatrixXcd& branches) const {
 cdouble_vec Polyphase::interpolate(const cdouble_vec& input) const {
     auto branches = break_into_branches(input);
     auto convolved_branches = convolve_branches(branches);
-    return sum_branches(convolved_branches);
+    convolved_branches = convolved_branches.transpose();
+    auto flattened = convolved_branches.reshaped();
+    cdouble_vec output(flattened.data(), flattened.data() + flattened.size());
+    return output;
 }
 
 // Decimate the input signal
