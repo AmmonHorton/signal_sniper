@@ -74,9 +74,20 @@ std::vector<std::complex<T>> operator*(const std::vector<std::complex<T>>& lhs, 
     return output;
 }
 
-// Slice a vector with a given start iterator, end iterator, and step factor
-template <typename T>
-std::vector<T> slice(const std::vector<T>& input, typename std::vector<T>::const_iterator start, typename std::vector<T>::const_iterator end, int step) {
+
+// Generic slicing function that works for any iterator type
+template <typename InputIterator, typename OutputIterator>
+void slice(InputIterator start, InputIterator end, int step, OutputIterator out_start) {
+    for (auto it = start; it < end; it += step) {
+        *out_start++ = *it;
+    }
+}
+
+// Generic slicing function that returns a vector
+template <typename Iterator>
+std::vector<typename std::iterator_traits<Iterator>::value_type> 
+slice(Iterator start, Iterator end, int step) {
+    using T = typename std::iterator_traits<Iterator>::value_type;
     std::vector<T> output;
     for (auto it = start; it < end; it += step) {
         output.push_back(*it);

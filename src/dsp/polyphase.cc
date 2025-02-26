@@ -20,71 +20,88 @@ void Polyphase::make_filter() {
         filter_coeffs[ii] *= hamming_window[ii];
     }
 
-    // Slice the filter into N slices
-    for (int ii = 0; ii < factor; ++ii) {
-        filter_slices.push_back(slice(filter_coeffs, filter_coeffs.begin() + ii, filter_coeffs.end(), factor));
-    }
+    filter_slices = branch(filter_coeffs);
 }
 
 // Break input into branches
-Eigen::MatrixXcd Polyphase::break_into_branches(const cdouble_vec& input) const {
-    int num_branches = factor;
-    int branch_size = (input.size() + factor - 1) / factor; // ceil(input.size() / factor)
-    Eigen::MatrixXcd branches(num_branches, branch_size);
-
-    // Map the input vector to an Eigen matrix
-    Eigen::Map<const Eigen::MatrixXcd> input_matrix(input.data(), branch_size, num_branches);
-
-    // Transpose the input matrix to get the branches
-    branches = input_matrix.transpose();
-
-    return branches;
+cdouble_vec Polyphase::branch(const cdouble_vec& input) const {
+    size_t size_per_branch = std::ceil(input.size() / factor);
+    cdouble_vec output(size_per_branch * factor, cdouble(0.0, 0.0));
+    for (int ii = 0; ii < factor; ++ii) {
+        slice(input.begin() + ii, input.end(), factor, (output.begin() + (ii*size_per_branch)));
+    }
+    return output;
 }
 
-// Convolve branches with filter slices
-Eigen::MatrixXcd Polyphase::convolve_branches(const Eigen::MatrixXcd& branches) const {
-    int num_branches = branches.rows();
-    int branch_size = branches.cols();
-    Eigen::MatrixXcd convolved_branches(num_branches, branch_size);
+// Collpase  a vector of multiple branches into one
+cdouble_vec Polyphase::interleave(const cdouble_vec& input) const {
+    cdouble_vec output(input.size(), cdouble(0.0, 0.0));
+    size_t size_per_branch = std::ceil(input.size() / factor);
+    for(int ii = 0; ii < size_per_branch; ++ii) {
+        slice(input.begin() + ii, input.end(), size_per_branch, (output.begin() + (ii*factor)));
+    }
+    return output;
+}
+
+cdouble_vec Polyphase::convolve_branches_interpolate(const cdouble_vec& input) const {
+    size_t size_per_input_branch = std::ceil(input.size() / factor);
+    size_t size_per_filter_branch = std::ceil(filter_slices.size() / factor);
+    cdouble_vec convolved_branches(input.size());
 
     // Convolve each branch with the corresponding filter slice
-    for (int i = 0; i < num_branches; ++i) {
-        cdouble_vec branch(branches.row(i).data(), branches.row(i).data() + branch_size);
-        convolved_branches.row(i) = Eigen::Map<Eigen::VectorXcd>(dsp::convolve::convolve(branch, filter_slices[i], true, false).data(), branch_size);
+    // TODO Change the convolve to use iterators and strides so that it is not computing unnecessary values
+    for (int ii = 0; ii < factor; ++ii) {
+        cdouble_vec filter(filter_slices.begin() + (ii*size_per_filter_branch), filter_slices.begin() + ((ii+1)*size_per_filter_branch));
+        auto convolved = dsp::convolve::convolve(input, filter, true, false);
+        slice(convolved.begin() + ii, convolved.end(), factor, (convolved_branches.begin() + (ii*size_per_input_branch)));
     }
 
     return convolved_branches;
 }
 
-// Sum down the columns for interpolation
-cdouble_vec Polyphase::sum_branches(const Eigen::MatrixXcd& branches) const {
-    int output_size = branches.cols();
+// Convolve branches with filter slices
+cdouble_vec Polyphase::convolve_branches_decimate(const cdouble_vec& branches) const {
+    size_t size_per_input_branch = std::ceil(branches.size() / factor);
+    size_t size_per_filter_branch = std::ceil(filter_slices.size() / factor);
+    cdouble_vec convolved_branches(branches.size());
+
+    // Convolve each branch with the corresponding filter slice
+    for (int ii = 0; ii < factor; ++ii) {
+        cdouble_vec branch(branches.begin() + (ii*size_per_input_branch), branches.begin() + ((ii+1)*size_per_input_branch));
+        cdouble_vec filter(filter_slices.begin() + (ii*size_per_filter_branch), filter_slices.begin() + ((ii+1)*size_per_filter_branch));
+        auto convolved = dsp::convolve::convolve(branch, filter, true, false);
+        std::copy(convolved.begin(), convolved.end(), convolved_branches.begin() + (ii*size_per_input_branch));
+    }
+
+    return convolved_branches;
+}
+
+// Sum down the columns for decimation
+cdouble_vec Polyphase::sum_branches(const cdouble_vec& branches) const {
+    int output_size = branches.size() / factor;
     cdouble_vec output(output_size, cdouble(0.0, 0.0));
 
     // Sum down the columns
-    for (int j = 0; j < output_size; ++j) {
-        for (int i = 0; i < branches.rows(); ++i) {
-            output[j] += branches(i, j);
-        }
+    for (int ii = 0; ii < output_size; ii++) {
+        output[ii] = std::accumulate(branches.begin(), branches.end(), cdouble(0.0, 0.0),
+        [&output_size, index = 0](cdouble acc, cdouble value) mutable {
+            return (index++ % output_size == 0) ? acc + value : acc;
+        });
     }
-
     return output;
 }
 
 // Interpolate the input signal
 cdouble_vec Polyphase::interpolate(const cdouble_vec& input) const {
-    auto branches = break_into_branches(input);
-    auto convolved_branches = convolve_branches(branches);
-    convolved_branches = convolved_branches.transpose();
-    auto flattened = convolved_branches.reshaped();
-    cdouble_vec output(flattened.data(), flattened.data() + flattened.size());
+    auto convolved_branches = convolve_branches_interpolate(input);
+    cdouble_vec output = interleave(convolved_branches);
     return output;
 }
 
 // Decimate the input signal
 cdouble_vec Polyphase::decimate(const cdouble_vec& input) const {
-    auto branches = break_into_branches(input);
-    auto convolved_branches = convolve_branches(branches);
+    auto branches = branch(input);
+    auto convolved_branches = convolve_branches_decimate(branches);
     return sum_branches(convolved_branches);
 }
 

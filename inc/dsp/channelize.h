@@ -4,10 +4,11 @@
 #include <vector>
 #include <complex>
 #include <Eigen/Dense>
-#include "polyphase.h"
-#include "fft.h"
-#include "tune.h"
 #include "utils/macros.h"
+#include "utils/vector_utils.h"
+#include "dsp/fft.h"
+#include "dsp/tune.h"
+#include "dsp/polyphase.h"
 
 namespace dsp {
 namespace channelize {
@@ -16,26 +17,24 @@ class PolyphaseChannelizer {
 public:
     PolyphaseChannelizer(int factor, int num_taps);
 
-    Eigen::MatrixXcd channelize(const cdouble_vec& input);
-
-    int get_factor() const;
+    cdouble_vec channelize(const cdouble_vec& input);
 
 private:
     dsp::polyphase::Polyphase polyphase;
     dsp::fft::FFT1D fft;
+    int factor;
 };
 
 class PolyphaseSynthesizer {
 public:
     PolyphaseSynthesizer(int factor, int num_taps);
 
-    cdouble_vec synthesize(const std::vector<cdouble_vec>& input);
-
-    int get_factor() const;
+    cdouble_vec synthesize(const cdouble_vec& input);
 
 private:
     dsp::polyphase::Polyphase polyphase;
     dsp::fft::FFT1D fft;
+    int factor;
 };
 
 class Channelizer {
@@ -56,6 +55,7 @@ private:
     int buffer_size;
     std::vector<dsp::polyphase::Polyphase> polyphase_filters;
     cdouble_vec buffer;
+    int factor;
 
     dsp::polyphase::Polyphase* find_or_create_polyphase_filter(int factor);
 };
@@ -78,6 +78,7 @@ private:
     int buffer_size;
     std::vector<dsp::polyphase::Polyphase> polyphase_filters;
     cdouble_vec buffer;
+    int factor;
 
     dsp::polyphase::Polyphase* find_or_create_polyphase_filter(int factor);
 };
