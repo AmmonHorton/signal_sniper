@@ -4,7 +4,7 @@ import signal_sniper_python as ssp
 
 def validate_numpy_polyphase():
     # Create a test signal
-    input_signal = np.exp(1j*2 * np.pi * 0.01 * np.arange(100))
+    input_signal = 40*np.exp(1j*2 * np.pi * 0.01 * np.arange(100))
 
     # Add a small amount of complex noise to the signal
     noise = np.random.normal(0, 0.1, input_signal.shape) + 1j * np.random.normal(0, 0.1, input_signal.shape)
@@ -19,18 +19,18 @@ def validate_numpy_polyphase():
 
     factor = 4
 
-    input_signal = np.pad(np.arange(100), (20, 20), 'constant')
-    filter_coeffs = np.arange(20)
+    # input_signal = np.pad(np.arange(100), (20, 20), 'constant')
+    # filter_coeffs = np.arange(20)
 
     # Polyphase interpolation using NumPy
     def numpy_polyphase_interpolate(input_signal, filter_coeffs, factor):
-        convolutions = np.array([np.convolve(input_signal, (filter_coeffs[i::factor]), mode='valid') for i in range(factor)])
+        convolutions = np.array([np.convolve(input_signal, (filter_coeffs[i::factor]), mode='same') for i in range(factor)])
         interleaved = np.reshape(convolutions.T, (-1))
         return interleaved
 
     # Polyphase decimation using NumPy
     def numpy_polyphase_decimate(input_signal, filter_coeffs, factor):
-        convolutions = np.array([np.convolve(input_signal[i::factor], np.flip(filter_coeffs[i::factor]), mode='valid') for i in range(factor)])
+        convolutions = np.array([np.convolve(input_signal[i::factor], np.flip(filter_coeffs[i::factor]), mode='same') for i in range(factor)])
         summed = np.sum(convolutions, axis=0)
         return summed
 
@@ -42,36 +42,20 @@ def validate_numpy_polyphase():
     upsampled_signal[::factor] = input_signal
     reference_interpolated_signal = np.convolve(upsampled_signal, filter_coeffs, mode='same')
 
-    print(np.array(np.real(ssp_output), dtype=int))
-    # print(np.array(np.real(numpy_interpolated_signal), dtype=int))
-    print(np.array(np.real(reference_interpolated_signal), dtype=int))
+    print(np.array(np.real(ssp_output[79:-60]), dtype=int))
+    print(np.array(np.real(numpy_interpolated_signal[79:-60]), dtype=int))
+    print(np.array(np.real(reference_interpolated_signal[76:-60]), dtype=int))
 
-    # ssp_output = np.reshape(ssp_polyphase_interpolator.decimate(input_signal), (4, -1))
+    # Validate decimation
     ssp_polyphase_interpolator = ssp.Polyphase(factor, np.flip(filter_coeffs))
     ssp_output = ssp_polyphase_interpolator.decimate(input_signal)
     numpy_decimated_signal = numpy_polyphase_decimate(input_signal, np.flip(filter_coeffs), factor)
-
     filtered_signal = np.convolve(input_signal, filter_coeffs, mode='same')
-    reference_decimated_signal = filtered_signal[2::factor]
+    reference_decimated_signal = filtered_signal[0::factor]
 
-    # print(np.array(np.real(ssp_output), dtype=int))
     print(np.array(np.real(ssp_output), dtype=int))
-    # print(numpy_decimated_signal)
-    print(reference_decimated_signal)
-
-    # # Take FFT of the reference and numpy polyphase interpolated signals
-    # fft_reference_interpolated = np.fft.fft(reference_interpolated_signal)
-    # fft_numpy_interpolated = np.fft.fft(numpy_interpolated_signal)
-
-    # # Plot the FFTs
-    # plt.figure()
-    # plt.plot(np.abs(fft_reference_interpolated), label='Reference Interpolated FFT')
-    # plt.plot(np.abs(fft_numpy_interpolated), label='NumPy Interpolated FFT', linestyle='--')
-    # plt.legend()
-    # plt.title('FFT of Interpolated Signals')
-    # plt.xlabel('Frequency Bin')
-    # plt.ylabel('Magnitude')
-    # plt.show()
+    print(np.array(np.real(numpy_decimated_signal), dtype=int))
+    print(np.array(np.real(reference_decimated_signal), dtype=int))
 
     assert np.allclose(numpy_interpolated_signal, reference_interpolated_signal, atol=1e-6), "Interpolation results do not match!"
 
