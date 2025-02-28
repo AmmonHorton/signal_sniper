@@ -156,5 +156,23 @@ cdouble_vec correlate(const cdouble_vec& input, const cdouble_vec& filter, bool 
     }
 }
 
+cdouble_vec convolve_stride(const cd_iter input_start, const cd_iter input_end,
+                     const cd_iter filter_begin, const cd_iter filter_end,
+                     int input_stride, int filter_stride) {
+    size_t input_size = std::distance(input_start, input_end);
+    size_t filter_size = std::distance(filter_begin, filter_end);
+    size_t output_size = input_size - filter_size + 1;
+    cdouble_vec output(output_size, cdouble(0, 0));
+    for (int ii = 0; ii < output_size; ii++) {
+        for (int jj = 0; jj < filter_size; jj++) {
+            output[ii] += input_start[ii*input_stride + jj] * std::conj(filter_begin[jj*filter_stride]);
+        }
+    }
+    return output;
+}
+
+} // namespace convolve
+} // namespace dsp
+
 } // namespace convolve
 } // namespace dsp

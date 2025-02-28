@@ -3,6 +3,7 @@
 #include <pybind11/stl.h>
 #include "dsp/convolve.h"
 #include "dsp/fft.h"
+#include "dsp/polyphase.h"
 
 namespace py = pybind11;
 
@@ -56,4 +57,17 @@ PYBIND11_MODULE(signal_sniper_python, m) {
                  self.execute(input, output, sign);
                  return output;
              }, py::arg("input"), py::arg("inverse") = false);
+
+    // Expose Polyphase class
+    py::class_<dsp::polyphase::Polyphase>(m, "Polyphase")
+        .def(py::init<int, int>(), py::arg("factor"), py::arg("num_taps"))
+        .def(py::init<int, cdouble_vec>(), py::arg("factor"), py::arg("coeffs"))
+        .def("branch", &dsp::polyphase::Polyphase::branch, py::arg("input"), py::arg("flip") = false)
+        .def("interleave", &dsp::polyphase::Polyphase::interleave, py::arg("input"))
+        .def("convolve_branches_decimate", &dsp::polyphase::Polyphase::convolve_branches_decimate, py::arg("branches"))
+        .def("convolve_branches_interpolate", &dsp::polyphase::Polyphase::convolve_branches_interpolate, py::arg("branches"))
+        .def("get_filter_slices", &dsp::polyphase::Polyphase::get_filter_slices)
+        .def("sum_branches", &dsp::polyphase::Polyphase::sum_branches, py::arg("branches"))
+        .def("interpolate", &dsp::polyphase::Polyphase::interpolate, py::arg("input"))
+        .def("decimate", &dsp::polyphase::Polyphase::decimate, py::arg("input"));
 }

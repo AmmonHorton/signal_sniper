@@ -16,9 +16,10 @@ namespace polyphase {
 class Polyphase {
 public:
     Polyphase(int factor, int num_taps);
+    Polyphase(int factor, const cdouble_vec& coeffs);
     ~Polyphase();
 
-    cdouble_vec branch(const cdouble_vec& input) const;
+    cdouble_vec branch(const cdouble_vec& input, bool flip = false) const;
     cdouble_vec interleave(const cdouble_vec& input) const;
 
     cdouble_vec convolve_branches_decimate(const cdouble_vec& branches) const;
@@ -29,6 +30,7 @@ public:
     cdouble_vec decimate(const cdouble_vec& input) const;
 
     int get_factor() const { return factor; }
+    cdouble_vec get_filter_slices() const { return filter_slices; }
 
 private:
     int factor;
