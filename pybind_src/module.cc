@@ -62,12 +62,13 @@ PYBIND11_MODULE(signal_sniper_python, m) {
     py::class_<dsp::polyphase::Polyphase>(m, "Polyphase")
         .def(py::init<int, int>(), py::arg("factor"), py::arg("num_taps"))
         .def(py::init<int, cdouble_vec>(), py::arg("factor"), py::arg("coeffs"))
-        .def("branch", &dsp::polyphase::Polyphase::branch, py::arg("input"), py::arg("flip") = false)
-        .def("interleave", &dsp::polyphase::Polyphase::interleave, py::arg("input"))
-        .def("convolve_branches_decimate", &dsp::polyphase::Polyphase::convolve_branches_decimate, py::arg("branches"))
-        .def("convolve_branches_interpolate", &dsp::polyphase::Polyphase::convolve_branches_interpolate, py::arg("branches"))
-        .def("get_filter_slices", &dsp::polyphase::Polyphase::get_filter_slices)
-        .def("sum_branches", &dsp::polyphase::Polyphase::sum_branches, py::arg("branches"))
         .def("interpolate", &dsp::polyphase::Polyphase::interpolate, py::arg("input"))
         .def("decimate", &dsp::polyphase::Polyphase::decimate, py::arg("input"));
+
+     // Expose convolve_stride function
+     m.def("convolve_stride", 
+     [](const cdouble_vec& input, const cdouble_vec& filter, int input_stride, int filter_stride, bool conjugate) {
+          cdouble_vec output(input.size() / input_stride, cdouble(0.0, 0.0));
+          return dsp::convolve::convolve_stride(input.begin(), input.end(), filter.begin(), filter.end(), output.begin(), output.end(), input_stride, filter_stride, 1, filter.size()/2, conjugate);
+     }, py::arg("input"), py::arg("filter"), py::arg("input_stride"), py::arg("filter_stride"), py::arg("conjugate"));
 }

@@ -19,23 +19,16 @@ public:
     Polyphase(int factor, const cdouble_vec& coeffs);
     ~Polyphase();
 
-    cdouble_vec branch(const cdouble_vec& input, bool flip = false) const;
-    cdouble_vec interleave(const cdouble_vec& input) const;
-
-    cdouble_vec convolve_branches_decimate(const cdouble_vec& branches) const;
-    cdouble_vec convolve_branches_interpolate(const cdouble_vec& branches) const;
-    cdouble_vec sum_branches(const cdouble_vec& branches) const;
-
     cdouble_vec interpolate(const cdouble_vec& input) const;
     cdouble_vec decimate(const cdouble_vec& input) const;
 
     int get_factor() const { return factor; }
-    cdouble_vec get_filter_slices() const { return filter_slices; }
+    cdouble_vec get_filter_coeffs() const { return filter_coeffs; }
 
 private:
     int factor;
     int num_taps;
-    cdouble_vec filter_slices;
+    cdouble_vec filter_coeffs;
 
     void make_filter();
 };
