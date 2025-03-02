@@ -5,59 +5,45 @@ namespace channelize {
 
 // PolyphaseChannelizer Implementation
 PolyphaseChannelizer::PolyphaseChannelizer(int factor, int num_taps)
-    : polyphase(factor, num_taps), fft(factor) {}
+    : factor(factor), polyphase(factor, num_taps), fft(factor) {}
 
-Eigen::MatrixXcd PolyphaseChannelizer::channelize(const cdouble_vec& input) {
-    auto branches = polyphase.break_into_branches(input);
-    auto convolved_branches = polyphase.convolve_branches(branches);
-
-    // Perform FFT on each branch
-    for (int i = 0; i < convolved_branches.cols(); ++i) {
-        Eigen::VectorXcd branch = convolved_branches.col(i);
-        cdouble_vec branch_vec(branch.data(), branch.data() + branch.size());
-        cdouble_vec fft_result(branch_vec.size());
-        fft.execute(branch_vec, fft_result, FFTW_FORWARD);
-        convolved_branches.col(i) = Eigen::Map<Eigen::VectorXcd>(fft_result.data(), fft_result.size());
-    }
-
-    return convolved_branches;
-}
-
-int PolyphaseChannelizer::get_factor() const {
-    return polyphase.get_factor();
+cdouble_vec PolyphaseChannelizer::channelize(const cdouble_vec& input) {
+    // cdouble_vec branches = polyphase.branch(input);
+    // cdouble_vec convolved_branches = polyphase.convolve_branches_decimate(branches);
+    // size_t size_per_input_branch = std::ceil(branches.size() / factor);
+    // // Perform FFT on each branch
+    // for (int ii = 0; ii < size_per_input_branch; ++ii) {
+    //     cdouble_vec column = slice(convolved_branches.begin() + ii, convolved_branches.end(), size_per_input_branch);
+    //     cdouble_vec fft_result(column.size());
+    //     fft.execute(column, fft_result, FFTW_FORWARD);
+    //     std::copy(fft_result.begin(), fft_result.end(), output.begin() + ii*factor);    
+    // }
+    // output = polyphase.interleave(output);
+    cdouble_vec output(input.size());
+    return output;
 }
 
 // PolyphaseSynthesizer Implementation
 PolyphaseSynthesizer::PolyphaseSynthesizer(int factor, int num_taps)
     : polyphase(factor, num_taps), fft(factor) {}
 
-cdouble_vec PolyphaseSynthesizer::synthesize(const std::vector<cdouble_vec>& input) {
-    int cols = std::ceil(input[0].size() / static_cast<double>(polyphase.get_factor()));
-    Eigen::MatrixXcd branches(input.size(), cols);
+cdouble_vec PolyphaseSynthesizer::synthesize(const cdouble_vec& input) {
 
-    // Convolve each branch with the corresponding filter slice
-    for (int ii = 0; ii < input.size(); ++ii) {
-        std::copy(input[ii].begin(), input[ii].end(), branches.row(ii).data());
-    }
+    // cdouble_vec cols(input.size());
+    // size_t size_per_input_branch = std::ceil(input.size() / factor);
+    // for (int ii = 0; ii < size_per_input_branch; ++ii) {
+    //     cdouble_vec ifft_input = slice(input.begin() + ii, input.end(), size_per_input_branch);
+    //     cdouble_vec ifft_result(input.size());
+    //     fft.execute(ifft_input, ifft_result, FFTW_BACKWARD);
+    //     std::copy(ifft_result.begin(), ifft_result.end(), cols.begin() + ii*factor);
+    // }
 
-    // Perform IFFT on each column
-    for (size_t ii = 0; ii < input[0].size(); ++ii) {
-        cdouble_vec ifft_result(input.size());
-        fft.execute(input[ii], ifft_result, FFTW_BACKWARD);
-        branches.row(ii) = Eigen::Map<Eigen::VectorXcd>(ifft_result.data(), ifft_result.size());
-    }
-
-    auto convolved_branches = polyphase.convolve_branches(branches);
-    convolved_branches = convolved_branches.transpose();
-    auto flattened = convolved_branches.reshaped();
-    cdouble_vec output(flattened.data(), flattened.data() + flattened.size());
+    // cdouble_vec rows = polyphase.interleave(cols);
+    // cdouble_vec convolved = polyphase.convolve_branches_interpolate(rows);
+    // cdouble_vec output = polyphase.interleave(convolved);
+    cdouble_vec output(input.size());
     return output;
 }
-
-int PolyphaseSynthesizer::get_factor() const {
-    return polyphase.get_factor();
-}
-    
 
 // Channelizer Implementation
 Channelizer::Channelizer(int sample_rate, double center_frequency, int num_taps, int dds_bit_precision, int buffer_size)

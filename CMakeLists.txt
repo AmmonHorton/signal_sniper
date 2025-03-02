@@ -12,6 +12,15 @@ option(BUILD_RPM "Build an RPM package" OFF)
 option(BUILD_DEB "Build a Debian package" OFF)
 option(INSTALL_TO_SYSTEM "Install to the local system" OFF)
 
+# Optimization and Warning Options
+option(ENABLE_OPTIMIZED_BUILD "Enable optimized (-O2) compilation" OFF)
+option(ENABLE_WARNINGS "Enable strict warnings (-Wall -Wextra)" OFF)
+
+if (ENABLE_WARNINGS)
+    message(STATUS "Enabling warnings for all compilation: -Wall -Wextra")
+    add_compile_options(signal_sniper PRIVATE -Wall -Wextra)
+endif()
+
 # Find Eigen3 (Header-only, so we only need include directory)
 find_path(EIGEN3_INCLUDE_DIR Eigen/Core
     PATHS /usr/include/eigen3 /usr/local/include/eigen3
@@ -47,19 +56,17 @@ endif()
 
 # Automatically find all source and header files
 file(GLOB_RECURSE SIGNAL_SNIPER_SOURCES LIST_DIRECTORIES false RELATIVE ${CMAKE_SOURCE_DIR} CONFIGURE_DEPENDS src/*.cc)
-file(GLOB_RECURSE SIGNAL_SNIPER_HEADERS LIST_DIRECTORIES false RELATIVE ${CMAKE_SOURCE_DIR} CONFIGURE_DEPENDS inc/*.h)
-
-# Force CMake to reconfigure when the src/ or inc/ directories change
-set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/inc
-)
 
 # Debugging output: Show all detected sources
 message(STATUS "Discovered source files: ${SIGNAL_SNIPER_SOURCES}")
 
 # Core Signal Sniper Library
 add_library(signal_sniper SHARED ${SIGNAL_SNIPER_SOURCES})
+
+if (ENABLE_OPTIMIZED_BUILD)
+    message(STATUS "Enabling optimized build for signal_sniper: -O2")
+    target_compile_options(signal_sniper PRIVATE -O2)
+endif()
 
 # Include all header directories
 target_include_directories(signal_sniper PUBLIC inc ${EIGEN3_INCLUDE_DIR})
@@ -77,7 +84,7 @@ if(ENABLE_TESTS)
     find_package(GTest REQUIRED)
     
     file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false RELATIVE ${CMAKE_SOURCE_DIR} CONFIGURE_DEPENDS tests/*.cc)
-    message("Discovered test source files: ${TEST_SOURCES}")
+    message(STATUS "Discovered test source files: ${TEST_SOURCES}")
 
     if(TEST_SOURCES)
         add_executable(test_signal_sniper ${TEST_SOURCES})
@@ -112,6 +119,12 @@ if(ENABLE_PYBIND)
 
         # Add the poybind module and link against the other built library
         pybind11_add_module(signal_sniper_python ${PYBIND_SOURCES})
+
+        if (ENABLE_OPTIMIZED_BUILD)
+            message(STATUS "Enabling optimized build for signal_sniper: -O2")
+            target_compile_options(signal_sniper PRIVATE -O2)
+        endif()
+
         # Set RPATH so that signal_sniper_python.so can find libsignal_sniper.so
         set_target_properties(signal_sniper_python PROPERTIES INSTALL_RPATH "\$ORIGIN")
         target_link_libraries(signal_sniper_python PRIVATE signal_sniper)

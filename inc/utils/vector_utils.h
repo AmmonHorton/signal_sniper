@@ -74,12 +74,60 @@ std::vector<std::complex<T>> operator*(const std::vector<std::complex<T>>& lhs, 
     return output;
 }
 
-// Slice a vector with a given start iterator, end iterator, and step factor
-template <typename T>
-std::vector<T> slice(const std::vector<T>& input, typename std::vector<T>::const_iterator start, typename std::vector<T>::const_iterator end, int step) {
+
+// Generic slicing function that works for any iterator type
+template <typename InputIterator, typename OutputIterator>
+void slice(InputIterator start, InputIterator end, int step, OutputIterator out_start) {
+    for (auto it = start; it < end; it += step) {
+        *out_start++ = *it;
+    }
+}
+
+// Generic slicing function that returns a vector
+template <typename Iterator>
+std::vector<typename std::iterator_traits<Iterator>::value_type> 
+slice(Iterator start, Iterator end, int step) {
+    using T = typename std::iterator_traits<Iterator>::value_type;
     std::vector<T> output;
     for (auto it = start; it < end; it += step) {
         output.push_back(*it);
+    }
+    return output;
+}
+
+// Break input into branches
+template <typename T>
+std::vector<T> branch(const std::vector<T>& input, int factor) {
+    size_t size_per_branch = std::ceil(input.size() / factor);
+    std::vector<T> output(size_per_branch * factor, T(0.0, 0.0));
+    for (int ii = 0; ii < factor; ++ii) {
+        slice(input.begin() + ii, input.end(), factor, (output.begin() + (ii*size_per_branch)));
+    }
+    return output;
+}
+
+// Collpase  a vector of multiple branches into one
+template <typename T>
+std::vector<T> interleave(const std::vector<T>& input, int factor) {
+    std::vector<T> output(input.size(), T(0.0, 0.0));
+    size_t size_per_branch = std::ceil(input.size() / factor);
+    for(int ii = 0; ii < size_per_branch; ++ii) {
+        slice(input.begin() + ii, input.end(), size_per_branch, (output.begin() + (ii*factor)));
+    }
+    return output;
+}
+
+// Sum down the columns af a vector containg branches
+template <typename T>
+std::vector<T> sum_down_columns(const std::vector<T>& branches, int factor) {
+    int output_size = branches.size() / factor;
+    std::vector<T> output(output_size, T(0.0, 0.0));
+
+    // Sum down the columns
+    for (int ii = 0; ii < output_size; ii++) {
+        for(int jj = 0; jj < factor; jj++) {
+            output[ii] += branches[ii + jj*output_size];
+        }
     }
     return output;
 }

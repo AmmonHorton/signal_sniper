@@ -3,6 +3,7 @@
 #include <pybind11/stl.h>
 #include "dsp/convolve.h"
 #include "dsp/fft.h"
+#include "dsp/polyphase.h"
 
 namespace py = pybind11;
 
@@ -56,4 +57,19 @@ PYBIND11_MODULE(signal_sniper_python, m) {
                  self.execute(input, output, sign);
                  return output;
              }, py::arg("input"), py::arg("inverse") = false);
+
+    // Expose Polyphase class
+    py::class_<dsp::polyphase::Polyphase>(m, "Polyphase")
+        .def(py::init<int, int>(), py::arg("factor"), py::arg("num_taps"))
+        .def(py::init<int, cdouble_vec>(), py::arg("factor"), py::arg("coeffs"))
+        .def("interpolate", &dsp::polyphase::Polyphase::interpolate, py::arg("input"))
+        .def("decimate", &dsp::polyphase::Polyphase::decimate, py::arg("input"));
+
+     // Expose convolve_stride function
+     m.def("convolve_stride", 
+     [](const cdouble_vec& input, const cdouble_vec& filter, int input_stride, int filter_stride, bool conjugate) {
+          cdouble_vec output(input.size() / input_stride, cdouble(0.0, 0.0));
+          dsp::convolve::convolve_stride(input.begin(), input.end(), filter.begin(), filter.end(), output.begin(), output.end(), input_stride, filter_stride, 1, std::floor(filter.size()/filter_stride/2.0f), conjugate);
+          return output;
+     }, py::arg("input"), py::arg("filter"), py::arg("input_stride"), py::arg("filter_stride"), py::arg("conjugate"));
 }
