@@ -51,73 +51,29 @@ cdouble_vec convolve(const cdouble_vec& input, const cdouble_vec& filter, bool p
 cdouble_vec correlate(const cdouble_vec& input, const cdouble_vec& filter, bool fft_overlap_save = true);
 
 
-// using cd_iter = cdouble_vec::const_iterator;
-template <typename First_Iter, typename Second_Iter, typename Third_Iter>
-// template <typename Second_Iter>
-static inline void convolve_stride(First_Iter input_begin, First_Iter input_end,
-                                          Second_Iter filter_begin, Second_Iter filter_end,
-                                          Third_Iter output_begin, Third_Iter output_end, 
-                                          int input_stride, int filter_stride, int output_stride,
-                                          int delay, bool conjugate) {
+template <typename InputIter, typename FilterIter, typename OutputIter>
+static inline void convolve_stride(InputIter input_begin, InputIter input_end,
+                                   FilterIter filter_begin, FilterIter filter_end,
+                                   OutputIter output_begin, OutputIter output_end, 
+                                   int input_stride, int filter_stride, int output_stride,
+                                   int delay, bool conjugate) {
     int filter_index_start = delay;
-    bool done_padding = true;
-    size_t input_array_start = 0;
+    size_t input_index_start = 0;
 
-    int ii = 0;
-    using ValueType = typename std::iterator_traits<First_Iter>::value_type;
-    while ((input_begin + input_array_start) < (input_end-delay)) {  // Iterate over input
-        
-        std::vector<ValueType> temp1;
-        std::vector<ValueType> temp2;
-
-
-
-        auto f_s = filter_begin + filter_index_start * filter_stride;  // Copy filter_begin (removes const restriction)
-        input_array_start += (done_padding)? 0 : input_stride;
-        int jj = input_array_start;
-        while (f_s < filter_end) {  // Iterate over filter
+    for (int ii = 0; ii < std::distance(output_begin, output_end); ii+=output_stride) {  // Iterate over input
+        auto f_s = filter_begin + filter_index_start * filter_stride;
+        int jj = input_index_start;
+        while (f_s < filter_end && input_begin + jj < input_end) {  // Iterate over filter
             auto filter_element = (conjugate) ? std::conj(*f_s) : *f_s;
-            if (input_begin + jj >= input_end || output_begin + ii >= output_end) {
-                break;
-            }
-            temp1.push_back(input_begin[jj]);
-            temp2.push_back(filter_element);
-            output_begin[ii] += input_begin[jj] * filter_element;  // Use dereferencing
+            output_begin[ii] += input_begin[jj] * filter_element;
             
             f_s += filter_stride;  // Increment filter iterator
-            jj += input_stride;  // Update input index
+            jj += input_stride;  // Update relative input index
         }
-        // std::cout << "loop vals: ";
-        // for (auto& val : temp1) {
-        //     std::cout << static_cast<int>(val.real()) << ", ";
-        // }
-        // std::cout << "\nFilter vals";
-        // for (auto& val : temp2) {
-        //     std::cout << static_cast<int>(val.real()) << ", ";
-        // }
-        // std::cout << "\n";
         
-
-        done_padding = static_cast<bool>(filter_index_start);
+        input_index_start += (filter_index_start)? 0 : input_stride;
         filter_index_start -= (filter_index_start)? 1: 0;
-
-        ii += output_stride;
     }
-
-
-    // int filter_index_start = (propogate_delay)? std::floor(filter.size()/2.0): 0;
-    // bool done_padding = true;
-    // size_t input_array_start = 0;
-    // for (int ii = 0; ii < output_size; ii++) {
-    //     input_array_start += (done_padding)? 0 : 1;
-    //     int max_iter = std::min(filter.size(), input.size() - input_array_start);
-    //     for (int jj = filter_index_start; jj < max_iter; jj++) {
-    //         int input_array_iter = jj - filter_index_start;
-    //         output[ii] += input[input_array_start + input_array_iter] * filter.rbegin()[jj];
-    //     }
-    //     done_padding = static_cast<bool>(filter_index_start);
-    //     filter_index_start -= (filter_index_start)? 1: 0;
-    // }
 }
 
 } // namespace convolve
