@@ -34,7 +34,7 @@ cdouble_vec Polyphase::decimate(const cdouble_vec& input) const {
     cdouble_vec output(branch_size, cdouble(0.0, 0.0));
     for (int ii = 0; ii < factor; ii++) {
         dsp::convolve::convolve_stride(input.begin() + ii, input.end(), filter_coeffs.begin() + ii, filter_coeffs.end(),
-                                       output.begin(), output.end(), factor, factor, 1, 0, false);
+                                       output.begin(), output.end(), factor, factor, 1, filter_coeffs.size()/factor/2, false);
     }
     return output;
 }

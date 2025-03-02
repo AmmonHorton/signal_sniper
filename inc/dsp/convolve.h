@@ -64,27 +64,42 @@ static inline void convolve_stride(First_Iter input_begin, First_Iter input_end,
     size_t input_array_start = 0;
 
     int ii = 0;
-    while ((input_begin + input_array_start) < input_end) {  // Iterate over input
+    using ValueType = typename std::iterator_traits<First_Iter>::value_type;
+    while ((input_begin + input_array_start) < (input_end-delay)) {  // Iterate over input
         
-        int jj = filter_index_start;
-        auto f_s = filter_begin;  // Copy filter_begin (removes const restriction)
+        std::vector<ValueType> temp1;
+        std::vector<ValueType> temp2;
+
+
+
+        auto f_s = filter_begin + filter_index_start * filter_stride;  // Copy filter_begin (removes const restriction)
         input_array_start += (done_padding)? 0 : input_stride;
+        int jj = input_array_start;
         while (f_s < filter_end) {  // Iterate over filter
             auto filter_element = (conjugate) ? std::conj(*f_s) : *f_s;
-            auto input_index = input_array_start + jj - filter_index_start;
-            if (input_begin + input_index >= input_end || output_begin + ii >= output_end) {
+            if (input_begin + jj >= input_end || output_begin + ii >= output_end) {
                 break;
             }
-            
-            output_begin[ii] += input_begin[input_index] * filter_element;  // Use dereferencing
+            temp1.push_back(input_begin[jj]);
+            temp2.push_back(filter_element);
+            output_begin[ii] += input_begin[jj] * filter_element;  // Use dereferencing
             
             f_s += filter_stride;  // Increment filter iterator
             jj += input_stride;  // Update input index
         }
+        // std::cout << "loop vals: ";
+        // for (auto& val : temp1) {
+        //     std::cout << static_cast<int>(val.real()) << ", ";
+        // }
+        // std::cout << "\nFilter vals";
+        // for (auto& val : temp2) {
+        //     std::cout << static_cast<int>(val.real()) << ", ";
+        // }
+        // std::cout << "\n";
+        
 
         done_padding = static_cast<bool>(filter_index_start);
-        filter_index_start -= (filter_index_start)? input_stride: 0;
-        filter_index_start = std::max(filter_index_start, 0);
+        filter_index_start -= (filter_index_start)? 1: 0;
 
         ii += output_stride;
     }

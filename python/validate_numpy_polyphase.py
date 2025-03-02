@@ -31,7 +31,7 @@ def validate_numpy_polyphase():
 
         print(np.flip(filter_ds))
 
-        output = np.convolve(in_vec_ds, np.flip(filter_ds), mode='valid')
+        output = np.convolve(in_vec_ds, np.flip(filter_ds), mode='same')
         return output
 
 
@@ -48,7 +48,7 @@ def validate_numpy_polyphase():
     numpy_str_interp_signal = numpy_stride_poly_interpolate(input_signal, filter_coeffs, factor)
 
     upsampled_signal = np.zeros(len(input_signal) * factor)
-    upsampled_signal[::factor] = input_signal
+    upsampled_signal[1::factor] = input_signal
     reference_interpolated_signal = np.convolve(upsampled_signal, filter_coeffs, mode='same')
 
     print(np.array(np.real(ssp_output), dtype=int))

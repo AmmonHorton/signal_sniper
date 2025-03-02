@@ -9,10 +9,10 @@ def validate_convolve_stride():
     filter_coeffs = np.array([0.2, 0.5, 0.2])
 
     input_signal = np.arange(40)
-    filter_coeffs = np.arange(10)
+    filter_coeffs = np.arange(20)
 
     # Define strides
-    input_stride = 1
+    input_stride = 5
     filter_stride = 2
     conjugate = False
 
@@ -24,13 +24,16 @@ def validate_convolve_stride():
         in_vec_ds = in_vec[in_start::input_stride]
         filter_ds = filt[filt_start::filter_stride]
 
-        output = np.convolve(in_vec_ds, np.flip(filter_ds), mode='valid')
+        print(np.flip(filter_ds))
+
+        output = np.convolve(in_vec_ds, np.flip(filter_ds), mode='same')
         return output
 
     # Using signal_sniper_python
-    convolved_signal = ssp.convolve_stride(input_signal, np.flip(filter_coeffs), input_stride, filter_stride, conjugate)
+    convolved_signal = ssp.convolve_stride(input_signal, filter_coeffs, input_stride, filter_stride, conjugate)
+    # print(convolved_signal)
     # Using NumPy for reference
-    numpy_convolved_signal = numpy_convolve_stride(input_signal, 0, np.flip(filter_coeffs), 0, input_stride, filter_stride, conjugate)
+    numpy_convolved_signal = numpy_convolve_stride(input_signal, 0, filter_coeffs, 0, input_stride, filter_stride, conjugate)
 
     # print(np.convolve([1, 2, 3, 4], [1, 2, 3]))
 

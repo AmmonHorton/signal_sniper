@@ -69,6 +69,7 @@ PYBIND11_MODULE(signal_sniper_python, m) {
      m.def("convolve_stride", 
      [](const cdouble_vec& input, const cdouble_vec& filter, int input_stride, int filter_stride, bool conjugate) {
           cdouble_vec output(input.size() / input_stride, cdouble(0.0, 0.0));
-          return dsp::convolve::convolve_stride(input.begin(), input.end(), filter.begin(), filter.end(), output.begin(), output.end(), input_stride, filter_stride, 1, filter.size()/2, conjugate);
+          dsp::convolve::convolve_stride(input.begin(), input.end(), filter.begin(), filter.end(), output.begin(), output.end(), input_stride, filter_stride, 1, std::floor(filter.size()/filter_stride/2.0f), conjugate);
+          return output;
      }, py::arg("input"), py::arg("filter"), py::arg("input_stride"), py::arg("filter_stride"), py::arg("conjugate"));
 }
