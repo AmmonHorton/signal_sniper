@@ -7,11 +7,7 @@
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
-
-// Type definitions for complex values
-using cdouble = std::complex<double>;
-using cfloat = std::complex<float>;
-using cint16 = std::complex<int16_t>;
+#include "utils/types.h"
 
 // Convert a complex vector to a real vector
 template <typename T>

@@ -16,30 +16,30 @@ using dsp::fft::FFT1D;
 class Convolve {
 public:
     // Constructor accepting a filter vector
-    Convolve(const cdouble_vec& filter, bool is_corelation = false, bool measure_best_fft_size = true);
+    Convolve(const cfloat_vec& filter, bool is_corelation = false, bool measure_best_fft_size = true);
 
     // Constructor accepting a size
     Convolve(int size, bool measure_best_fft_size = true);
 
     // Load a new filter
-    void load_filter(const cdouble_vec& filter, bool is_corelation = false);
+    void load_filter(const cfloat_vec& filter, bool is_corelation = false);
 
     // Overlap-save convolution
-    cdouble_vec overlap_save(const cdouble_vec& input, bool propogate_delay = false);
+    cfloat_vec overlap_save(const cfloat_vec& input, bool propogate_delay = false);
     
     // Convolve function
-    cdouble_vec convolve(const cdouble_vec& input, const cdouble_vec& filter, bool propogate_delay);
+    cfloat_vec convolve(const cfloat_vec& input, const cfloat_vec& filter, bool propogate_delay);
     
     // Correlate function
-    cdouble_vec correlate(const cdouble_vec& input, const cdouble_vec& filter);
+    cfloat_vec correlate(const cfloat_vec& input, const cfloat_vec& filter);
     
 
     private:
     size_t fitler_size_;
     size_t fft_block_size_;
     FFT1D fft_plan_;
-    cdouble_vec fft_filter_;
-    cdouble_vec overlap_;
+    cfloat_vec fft_filter_;
+    cfloat_vec overlap_;
     
     
     // Create FFTW plans
@@ -47,8 +47,8 @@ public:
 };
 
 // Outside class functions
-cdouble_vec convolve(const cdouble_vec& input, const cdouble_vec& filter, bool propogate_delay = true, bool fft_overlap_save = true);
-cdouble_vec correlate(const cdouble_vec& input, const cdouble_vec& filter, bool fft_overlap_save = true);
+cfloat_vec convolve(const cfloat_vec& input, const cfloat_vec& filter, bool propogate_delay = true, bool fft_overlap_save = true);
+cfloat_vec correlate(const cfloat_vec& input, const cfloat_vec& filter, bool fft_overlap_save = true);
 
 
 template <typename InputIter, typename FilterIter, typename OutputIter>

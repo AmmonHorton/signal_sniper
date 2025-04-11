@@ -20,7 +20,7 @@ def validate_numpy_polyphase():
     factor = 4
 
     input_signal = np.arange(100)
-    filter_coeffs = np.arange(20)
+    filter_coeffs = np.arange(22)
 
     def numpy_convolve_stride(in_vec, in_start, filt, filt_start, input_stride, filter_stride, conjugate):
         if conjugate:
@@ -74,7 +74,7 @@ def validate_numpy_polyphase():
 
     print(np.array(np.real(ssp_output), dtype=int))
     print(np.array(np.real(numpy_str_decim_signal), dtype=int))
-    print(np.array(np.real(reference_decimated_signal), dtype=int))
+    print(np.array(np.real(filtered_signal), dtype=int))
 
     # assert np.allclose(numpy_interpolated_signal, reference_interpolated_signal, atol=1e-6), "Interpolation results do not match!"
 

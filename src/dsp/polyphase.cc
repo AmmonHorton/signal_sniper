@@ -13,15 +13,15 @@ Polyphase::Polyphase(int factor, int num_taps)
     }
 }
 
-Polyphase::Polyphase(int factor, const cdouble_vec& coeffs)
+Polyphase::Polyphase(int factor, const cfloat_vec& coeffs)
     : factor(factor), num_taps(coeffs.size()), filter_coeffs(coeffs.begin(), coeffs.end()) {
 }
 
 // Destructor for Polyphase
 Polyphase::~Polyphase() {}
 
-cdouble_vec Polyphase::interpolate(const cdouble_vec& input) const {
-    cdouble_vec output(input.size() * factor, cdouble(0.0, 0.0));
+cfloat_vec Polyphase::interpolate(const cfloat_vec& input) const {
+    cfloat_vec output(input.size() * factor, cfloat(0.0, 0.0));
     for (int ii = 0; ii < factor; ii++) {
         dsp::convolve::convolve_stride(input.begin(), input.end(), filter_coeffs.rbegin() + factor - 1 - ii, filter_coeffs.rend(),
                                         output.begin() + ii, output.end(), 1, factor, factor, filter_coeffs.size()/factor/2, false);
@@ -29,9 +29,9 @@ cdouble_vec Polyphase::interpolate(const cdouble_vec& input) const {
     return output;
 }
 
-cdouble_vec Polyphase::decimate(const cdouble_vec& input) const {
+cfloat_vec Polyphase::decimate(const cfloat_vec& input) const {
     size_t branch_size = std::ceil(input.size() / static_cast<float>(factor));
-    cdouble_vec output(branch_size, cdouble(0.0, 0.0));
+    cfloat_vec output(branch_size, cfloat(0.0, 0.0));
     for (int ii = 0; ii < factor; ii++) {
         dsp::convolve::convolve_stride(input.begin() + ii, input.end(), filter_coeffs.begin() + ii, filter_coeffs.end(),
                                        output.begin(), output.end(), factor, factor, 1, filter_coeffs.size()/factor/2, false);

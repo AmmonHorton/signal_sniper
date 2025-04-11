@@ -62,6 +62,7 @@ message(STATUS "Discovered source files: ${SIGNAL_SNIPER_SOURCES}")
 
 # Core Signal Sniper Library
 add_library(signal_sniper SHARED ${SIGNAL_SNIPER_SOURCES})
+target_compile_options(signal_sniper PRIVATE -mavx2)
 
 if (ENABLE_OPTIMIZED_BUILD)
     message(STATUS "Enabling optimized build for signal_sniper: -O2")

@@ -35,9 +35,9 @@ int find_optimal_fft_size(int desiredSize) {
 }
 
 // 1D FFT using FFT1D class
-cdouble_vec fft1d(const cdouble_vec& in, int sign) {
+cfloat_vec fft1d(const cfloat_vec& in, int sign) {
     int size = in.size();
-    cdouble_vec out(size);
+    cfloat_vec out(size);
     
     FFT1D fft(size); // Use the FFT1D class
     fft.execute(in, out, sign);
@@ -46,9 +46,9 @@ cdouble_vec fft1d(const cdouble_vec& in, int sign) {
 }
 
 // 2D FFT using FFT2D class
-cdouble_vec fft2d(const cdouble_vec& in, int sign, int nx, int ny) {
+cfloat_vec fft2d(const cfloat_vec& in, int sign, int nx, int ny) {
     int size = nx * ny;
-    cdouble_vec out(size);
+    cfloat_vec out(size);
 
     FFT2D fft(nx, ny); // Use the FFT2D class
     fft.execute(in, out, sign);
@@ -57,9 +57,9 @@ cdouble_vec fft2d(const cdouble_vec& in, int sign, int nx, int ny) {
 }
 
 // 3D FFT using FFT3D class
-cdouble_vec fft3d(const cdouble_vec& in, int sign, int nx, int ny, int nz) {
+cfloat_vec fft3d(const cfloat_vec& in, int sign, int nx, int ny, int nz) {
     int size = nx * ny * nz;
-    cdouble_vec out(size);
+    cfloat_vec out(size);
 
     FFT3D fft(nx, ny, nz); // Use the FFT3D class
     fft.execute(in, out, sign);
@@ -121,7 +121,7 @@ FFT_Base& FFT_Base::operator=(FFT_Base&& other) noexcept {
     return *this;
 }
 
-void FFT_Base::execute(const cdouble_vec& in, cdouble_vec& out, int sign) {
+void FFT_Base::execute(const cfloat_vec& in, cfloat_vec& out, int sign) {
     if (size_ == 0) return;
     CHECK_TRUE(in.size() == size_, "Input vector size does not match FFT size");
     CHECK_TRUE(out.size() == size_, "Output vector size does not match FFT size");

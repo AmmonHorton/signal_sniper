@@ -5,7 +5,7 @@
 namespace dsp {
 namespace convolve {
 
-Convolve::Convolve(const cdouble_vec& filter, bool is_corelation, bool measure_best_fft_size) : fitler_size_(filter.size()) {
+Convolve::Convolve(const cfloat_vec& filter, bool is_corelation, bool measure_best_fft_size) : fitler_size_(filter.size()) {
     
     // determine the size of the fft blocks
     if (measure_best_fft_size) {
@@ -14,7 +14,7 @@ Convolve::Convolve(const cdouble_vec& filter, bool is_corelation, bool measure_b
         fft_block_size_ = fitler_size_ * 8;
     }
     
-    fft_filter_ = cdouble_vec(fft_block_size_, cdouble(0, 0));
+    fft_filter_ = cfloat_vec(fft_block_size_, cfloat(0, 0));
     fft_plan_ = std::move(FFT1D(fft_block_size_));
     load_filter(filter, is_corelation);
 }
@@ -27,18 +27,18 @@ Convolve::Convolve(int size, bool measure_best_fft_size) : fitler_size_(size) {
     } else {
         fft_block_size_ = fitler_size_ * 8;
     }
-    fft_filter_ = cdouble_vec(fft_block_size_, cdouble(0, 0));
+    fft_filter_ = cfloat_vec(fft_block_size_, cfloat(0, 0));
     fft_plan_ = std::move(FFT1D(fft_block_size_));
 }
 
 
-void Convolve::load_filter(const cdouble_vec& filter, bool is_corelation) {
+void Convolve::load_filter(const cfloat_vec& filter, bool is_corelation) {
     CHECK_TRUE(filter.size() <= fft_block_size_, "Filter size must be less than or equal to the fft block size");
     CHECK_TRUE(filter.size() > 3, "Filter size must be larger than 3 for overlap save usage");
     
-    cdouble_vec filter_padded(fft_block_size_, cdouble(0, 0));
+    cfloat_vec filter_padded(fft_block_size_, cfloat(0, 0));
     if (is_corelation) {
-        std::transform(filter.rbegin(), filter.rend(), filter_padded.begin(), [](const cdouble& val) {
+        std::transform(filter.rbegin(), filter.rend(), filter_padded.begin(), [](const cfloat& val) {
             return std::conj(val);
         });
     } else {
@@ -47,7 +47,7 @@ void Convolve::load_filter(const cdouble_vec& filter, bool is_corelation) {
     fft_plan_.execute(filter_padded, fft_filter_, FFTW_FORWARD);
 }
 
-cdouble_vec Convolve::overlap_save(const cdouble_vec& input, bool propogate_delay) {
+cfloat_vec Convolve::overlap_save(const cfloat_vec& input, bool propogate_delay) {
     CHECK_TRUE(input.size() >= fitler_size_, "Input size must be greater than or equal to the filter size");
 
     size_t overlap = fitler_size_ - 1;
@@ -56,15 +56,15 @@ cdouble_vec Convolve::overlap_save(const cdouble_vec& input, bool propogate_dela
     size_t total_zero_fill = (propogate_delay)? std::floor(fitler_size_/2): 0;
     
     size_t output_size = (propogate_delay)? input.size(): input.size() - fitler_size_ + 1;
-    cdouble_vec output(output_size, cdouble(0, 0));
+    cfloat_vec output(output_size, cfloat(0, 0));
     
     auto input_iter = input.begin();
     auto output_iter = output.begin();
     
-    cdouble_vec input_block(fft_block_size_, cdouble(0, 0));
-    cdouble_vec fft_output(fft_block_size_);
+    cfloat_vec input_block(fft_block_size_, cfloat(0, 0));
+    cfloat_vec fft_output(fft_block_size_);
     
-    double scale = 1.0 / fft_block_size_;
+    float scale = 1.0 / fft_block_size_;
     while (input_iter < input.end() && output_iter < output.end()) {
         // Can only zero fill up to one block size
         size_t zero_fill = std::min(total_zero_fill, fft_block_size_);
@@ -77,7 +77,7 @@ cdouble_vec Convolve::overlap_save(const cdouble_vec& input, bool propogate_dela
         // Copy the input data into the input block
         CHECK_TRUE(input_iter + samples_to_add <= input.end(), "Input iterator going out of bounds");
         auto input_copied = std::copy(input_iter, input_iter + samples_to_add, input_block.begin() + zero_fill);
-        std::fill(input_copied, input_block.end(), cdouble(0, 0));
+        std::fill(input_copied, input_block.end(), cfloat(0, 0));
         
         // Advance counters/iterators
         input_iter += advance;
@@ -88,7 +88,7 @@ cdouble_vec Convolve::overlap_save(const cdouble_vec& input, bool propogate_dela
 
         // Perform fft, element-wise multiplication, and inverse fft
         fft_plan_.execute(input_block, fft_output, FFTW_FORWARD);
-        std::transform(fft_output.begin(), fft_output.end(), fft_filter_.begin(), fft_output.begin(), std::multiplies<cdouble>());
+        std::transform(fft_output.begin(), fft_output.end(), fft_filter_.begin(), fft_output.begin(), std::multiplies<cfloat>());
         fft_plan_.execute(fft_output, input_block, FFTW_BACKWARD);
 
         // Copy the valid samples to the output
@@ -97,7 +97,7 @@ cdouble_vec Convolve::overlap_save(const cdouble_vec& input, bool propogate_dela
         samples_to_add = std::min(samples_to_add, static_cast<size_t>(output.end() - output_iter));
 
         CHECK_TRUE(output_iter+ samples_to_add <= output.end(), "Output iterator going out of bounds");
-        output_iter = std::transform(valid_sample_start, valid_sample_start + samples_to_add, output_iter, [scale](const cdouble& val) {
+        output_iter = std::transform(valid_sample_start, valid_sample_start + samples_to_add, output_iter, [scale](const cfloat& val) {
             return val * scale;
         });
 
@@ -105,23 +105,23 @@ cdouble_vec Convolve::overlap_save(const cdouble_vec& input, bool propogate_dela
     return output;
 }
 
-cdouble_vec Convolve::convolve(const cdouble_vec& input, const cdouble_vec& filter, bool propogate_delay) {
+cfloat_vec Convolve::convolve(const cfloat_vec& input, const cfloat_vec& filter, bool propogate_delay) {
     load_filter(filter, false);
     return overlap_save(input, propogate_delay);
 }
 
-cdouble_vec Convolve::correlate(const cdouble_vec& input, const cdouble_vec& filter) {
+cfloat_vec Convolve::correlate(const cfloat_vec& input, const cfloat_vec& filter) {
     load_filter(filter, true);
     return overlap_save(input, false);
 }
 
-cdouble_vec convolve(const cdouble_vec& input, const cdouble_vec& filter, bool propogate_delay, bool fft_overlap_save) {
+cfloat_vec convolve(const cfloat_vec& input, const cfloat_vec& filter, bool propogate_delay, bool fft_overlap_save) {
     if (fft_overlap_save) {
         Convolve convolver(filter, false, true);
         return convolver.overlap_save(input, propogate_delay);
     } else {
         size_t output_size = (propogate_delay)? input.size() : input.size() - filter.size() + 1;
-        cdouble_vec output(output_size, cdouble(0, 0));
+        cfloat_vec output(output_size, cfloat(0, 0));
 
         int filter_index_start = (propogate_delay)? std::floor(filter.size()/2.0): 0;
         bool done_padding = true;
@@ -140,13 +140,13 @@ cdouble_vec convolve(const cdouble_vec& input, const cdouble_vec& filter, bool p
     }
 }
 
-cdouble_vec correlate(const cdouble_vec& input, const cdouble_vec& filter, bool fft_overlap_save) {
+cfloat_vec correlate(const cfloat_vec& input, const cfloat_vec& filter, bool fft_overlap_save) {
     if (fft_overlap_save) {
         Convolve convolver(filter, true, true);
         return convolver.correlate(input, filter);
     } else {
         size_t output_size = input.size() - filter.size() + 1;
-        cdouble_vec output(output_size, cdouble(0, 0));
+        cfloat_vec output(output_size, cfloat(0, 0));
         for (int ii = 0; ii < output_size; ii++) {
             for (int jj = 0; jj < filter.size(); jj++) {
                 output[ii] += input[ii + jj] * std::conj(filter[jj]);
