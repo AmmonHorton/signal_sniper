@@ -8,17 +8,6 @@ PolyphaseChannelizer::PolyphaseChannelizer(int factor, int num_taps)
     : factor(factor), polyphase(factor, num_taps), fft(factor) {}
 
 cfloat_vec PolyphaseChannelizer::channelize(const cfloat_vec& input) {
-    // cfloat_vec branches = polyphase.branch(input);
-    // cfloat_vec convolved_branches = polyphase.convolve_branches_decimate(branches);
-    // size_t size_per_input_branch = std::ceil(branches.size() / factor);
-    // // Perform FFT on each branch
-    // for (int ii = 0; ii < size_per_input_branch; ++ii) {
-    //     cfloat_vec column = slice(convolved_branches.begin() + ii, convolved_branches.end(), size_per_input_branch);
-    //     cfloat_vec fft_result(column.size());
-    //     fft.execute(column, fft_result, FFTW_FORWARD);
-    //     std::copy(fft_result.begin(), fft_result.end(), output.begin() + ii*factor);    
-    // }
-    // output = polyphase.interleave(output);
     cfloat_vec output(input.size());
     return output;
 }
@@ -28,19 +17,6 @@ PolyphaseSynthesizer::PolyphaseSynthesizer(int factor, int num_taps)
     : polyphase(factor, num_taps), fft(factor) {}
 
 cfloat_vec PolyphaseSynthesizer::synthesize(const cfloat_vec& input) {
-
-    // cfloat_vec cols(input.size());
-    // size_t size_per_input_branch = std::ceil(input.size() / factor);
-    // for (int ii = 0; ii < size_per_input_branch; ++ii) {
-    //     cfloat_vec ifft_input = slice(input.begin() + ii, input.end(), size_per_input_branch);
-    //     cfloat_vec ifft_result(input.size());
-    //     fft.execute(ifft_input, ifft_result, FFTW_BACKWARD);
-    //     std::copy(ifft_result.begin(), ifft_result.end(), cols.begin() + ii*factor);
-    // }
-
-    // cfloat_vec rows = polyphase.interleave(cols);
-    // cfloat_vec convolved = polyphase.convolve_branches_interpolate(rows);
-    // cfloat_vec output = polyphase.interleave(convolved);
     cfloat_vec output(input.size());
     return output;
 }

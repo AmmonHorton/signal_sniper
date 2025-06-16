@@ -1,5 +1,5 @@
 import numpy as np
-import signal_sniper_python as ssp
+import signal_sniper_py as ssp
 
 def validate_convolve():
     filter_sizes = [4, 5, 6, 7, 8, 9, 10, 50, 567]  # Even and odd filter sizes

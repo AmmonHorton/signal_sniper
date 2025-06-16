@@ -12,11 +12,11 @@ fi
 
 # Activate virtual environment
 source .venv/bin/activate
+pip install --upgrade pip
 
 # Install Python dependencies
 if [ -f "python/requirements.txt" ]; then
     echo "📦 Installing Python dependencies..."
-    pip install --upgrade pip
     pip install -r python/requirements.txt
 else
     echo "⚠️ No requirements.txt found in python/ directory!"
@@ -26,7 +26,7 @@ fi
 mkdir -p build && cd build
 
 # Run CMake with testing and Pybind enabled
-cmake .. -DENABLE_TESTS=ON -DENABLE_PYBIND=ON
+cmake .. -DENABLE_TESTS=ON -DENABLE_PYBIND=ON -DENABLE_PYTHON_INSTALL=ON
 
 # Compile everything
 make

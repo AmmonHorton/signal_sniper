@@ -8,7 +8,7 @@ echo "📦 Building RPM Package..."
 mkdir -p build && cd build
 
 # Run CMake with RPM packaging enabled
-cmake .. -DBUILD_RPM=ON
+cmake .. -DBUILD_RPM=ON -DENABLE_OPTIMIZATIONS=ON
 
 # Compile and generate RPM
 make -j$(nproc)

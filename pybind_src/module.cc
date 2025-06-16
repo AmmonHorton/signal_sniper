@@ -7,13 +7,13 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(signal_sniper_python, m) {
+PYBIND11_MODULE(signal_sniper_py, m) {
     py::class_<dsp::convolve::Convolve>(m, "Convolve")
         .def(py::init<const cfloat_vec&, bool, bool>(), 
              py::arg("filter"), py::arg("is_corelation") = false, py::arg("measure_best_fft_size") = true)
         .def(py::init<int, bool>(), 
              py::arg("size"), py::arg("measure_best_fft_size") = true)
-        .def("overlap_save", 
+        .def("overlap_save",
              &dsp::convolve::Convolve::overlap_save, 
              py::arg("input"), py::arg("propogate_delay") = false)
         .def("convolve", 
@@ -72,11 +72,4 @@ PYBIND11_MODULE(signal_sniper_python, m) {
           dsp::convolve::convolve_stride(input.begin(), input.end(), filter.begin(), filter.end(), output.begin(), output.end(), input_stride, filter_stride, 1, std::floor(filter.size()/filter_stride/2.0f), conjugate);
           return output;
      }, py::arg("input"), py::arg("filter"), py::arg("input_stride"), py::arg("filter_stride"), py::arg("conjugate"));
-
-     m.def("convolve_decimate_fft_simd_unaligned", 
-          [](const cfloat_vec& input, const cfloat_vec& filter, int decimation_factor) {
-               cfloat_vec output(input.size() / decimation_factor, cfloat(0.0, 0.0));
-               dsp::convolve::convolve_decimate_fft_simd_unaligned(input, filter, decimation_factor, output);
-               return output;
-          }, py::arg("input"), py::arg("filter"), py::arg("decimation_factor"));
 }
