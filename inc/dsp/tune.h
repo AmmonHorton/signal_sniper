@@ -38,8 +38,8 @@ void tune(Iterator begin, Iterator end, double phase_increment, double starting_
 }
 
 // for generating a complex sinusoid
-cdouble_vec generate_complex_sinusoid(int num_samples, double phase_increment, double starting_phase = 0.0) {
-    cdouble_vec samples(num_samples);
+cfloat_vec generate_complex_sinusoid(int num_samples, double phase_increment, double starting_phase = 0.0) {
+    cfloat_vec samples(num_samples);
     double phase_accumulator = starting_phase;
     for (int ii = 0; ii < num_samples; ++ii) {
         samples[ii] = cexp(static_cast<float>(phase_accumulator));
@@ -67,7 +67,7 @@ public:
     }
 
     // Access the LUT
-    std::complex<float> cexp(double normalized_phase) const {
+    cfloat cexp(double normalized_phase) const {
         int index = static_cast<int>(normalize_phase(normalized_phase, true) * lut_size);
         return lut[index];
     }

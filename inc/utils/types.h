@@ -16,7 +16,7 @@ using cfloat = std::complex<float>;
 using cint16 = std::complex<int16_t>;
 
 // Type definitions for complex vectors
-using cdouble_vec = std::vector<cdouble>;
+using cdouble_vec = std::vector<cfloat>;
 using cfloat_vec = std::vector<cfloat>;
 using cint16_vec = std::vector<cint16>;
 

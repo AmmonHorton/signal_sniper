@@ -16,19 +16,19 @@ namespace polyphase {
 class Polyphase {
 public:
     Polyphase(int factor, int num_taps);
-    Polyphase(int factor, const cdouble_vec& coeffs);
+    Polyphase(int factor, const cfloat_vec& coeffs);
     ~Polyphase();
 
-    cdouble_vec interpolate(const cdouble_vec& input) const;
-    cdouble_vec decimate(const cdouble_vec& input) const;
+    cfloat_vec interpolate(const cfloat_vec& input) const;
+    cfloat_vec decimate(const cfloat_vec& input) const;
 
     int get_factor() const { return factor; }
-    cdouble_vec get_filter_coeffs() const { return filter_coeffs; }
+    cfloat_vec get_filter_coeffs() const { return filter_coeffs; }
 
 private:
     int factor;
     int num_taps;
-    cdouble_vec filter_coeffs;
+    cfloat_vec filter_coeffs;
 
     void make_filter();
 };

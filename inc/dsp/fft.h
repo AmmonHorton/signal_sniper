@@ -13,9 +13,9 @@ namespace dsp {
 namespace fft {
 
 int find_optimal_fft_size(int desiredSize);
-cdouble_vec fft1d(const cdouble_vec& in, int sign);
-cdouble_vec fft2d(const cdouble_vec& in, int sign, int nx, int ny);
-cdouble_vec fft3d(const cdouble_vec& in, int sign, int nx, int ny, int nz);
+cfloat_vec fft1d(const cfloat_vec& in, int sign);
+cfloat_vec fft2d(const cfloat_vec& in, int sign, int nx, int ny);
+cfloat_vec fft3d(const cfloat_vec& in, int sign, int nx, int ny, int nz);
 
 class FFT_Base {
 public:
@@ -29,7 +29,7 @@ public:
     FFT_Base(const FFT_Base&) = delete;
     FFT_Base& operator=(const FFT_Base&) = delete;
 
-    void execute(const cdouble_vec& in, cdouble_vec& out, int sign);
+    void execute(const cfloat_vec& in, cfloat_vec& out, int sign);
 
 protected:
     int size_;

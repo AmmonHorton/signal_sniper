@@ -7,10 +7,10 @@ set(CMAKE_SUPPRESS_REGENERATION OFF)
 
 # Options to enable/disable components
 option(ENABLE_TESTS "Enable GoogleTest Unit Tests" OFF)
-option(ENABLE_PYBIND "Enable Pybind11 Python Bindings" OFF)
+option(ENABLE_PYBIND "Enable Pybind11 Python Binding Compilation" OFF)
+option(ENABLE_PYTHON_INSTALL "Enable Pybind11 python installation - Must have ENABLE_PYBIND set" OFF)
 option(BUILD_RPM "Build an RPM package" OFF)
 option(BUILD_DEB "Build a Debian package" OFF)
-option(INSTALL_TO_SYSTEM "Install to the local system" OFF)
 
 # Optimization and Warning Options
 option(ENABLE_OPTIMIZED_BUILD "Enable optimized (-O2) compilation" OFF)
@@ -54,7 +54,7 @@ else()
     message(FATAL_ERROR "Could not find FFTW library")
 endif()
 
-# Automatically find all source and header files
+# Automatically find all source files
 file(GLOB_RECURSE SIGNAL_SNIPER_SOURCES LIST_DIRECTORIES false RELATIVE ${CMAKE_SOURCE_DIR} CONFIGURE_DEPENDS src/*.cc)
 
 # Debugging output: Show all detected sources
@@ -62,6 +62,7 @@ message(STATUS "Discovered source files: ${SIGNAL_SNIPER_SOURCES}")
 
 # Core Signal Sniper Library
 add_library(signal_sniper SHARED ${SIGNAL_SNIPER_SOURCES})
+target_compile_options(signal_sniper PRIVATE -mavx2)
 
 if (ENABLE_OPTIMIZED_BUILD)
     message(STATUS "Enabling optimized build for signal_sniper: -O2")
@@ -71,12 +72,6 @@ endif()
 # Include all header directories
 target_include_directories(signal_sniper PUBLIC inc ${EIGEN3_INCLUDE_DIR})
 target_link_libraries(signal_sniper PRIVATE FFTW3::FFTW3)
-
-# Install library and headers
-if (INSTALL_TO_SYSTEM)
-    install(TARGETS signal_sniper DESTINATION lib)
-    install(DIRECTORY inc/ DESTINATION include)  # Install all headers while preserving structure
-endif()
 
 # GoogleTest (optional)
 if(ENABLE_TESTS)
@@ -97,43 +92,35 @@ endif()
 
 # Pybind11 Python Bindings (optional)
 if(ENABLE_PYBIND)
-    # Check if a virtual environment exists and use it if available
-    if(EXISTS "${CMAKE_SOURCE_DIR}/.venv/bin/python3")
-        set(Python3_EXECUTABLE "${CMAKE_SOURCE_DIR}/.venv/bin/python3")
-        message(STATUS "Using virtual environment Python: ${Python3_EXECUTABLE}")
-    endif()
-    
-    # Run find package which will set python3_SITELIB
-    find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
     find_package(pybind11 REQUIRED)
-    
-    # Ensure Python3_SITELIB is set
-    if(NOT Python3_SITELIB)
-        message(FATAL_ERROR "CMake did not detect Python3_SITELIB. Ensure Python3 is properly found.")
-    endif()
 
     file(GLOB_RECURSE PYBIND_SOURCES LIST_DIRECTORIES false RELATIVE ${CMAKE_SOURCE_DIR} CONFIGURE_DEPENDS pybind_src/*.cc)
+    message(STATUS "Discovered pybind source files: ${PYBIND_SOURCES}")
 
-    if(PYBIND_SOURCES)
-        message(STATUS "Discovered pybind source files: ${PYBIND_SOURCES}")
-
-        # Add the poybind module and link against the other built library
-        pybind11_add_module(signal_sniper_python ${PYBIND_SOURCES})
-
-        if (ENABLE_OPTIMIZED_BUILD)
-            message(STATUS "Enabling optimized build for signal_sniper: -O2")
-            target_compile_options(signal_sniper PRIVATE -O2)
+    # Add the pybind module and link against the other built library
+    pybind11_add_module(signal_sniper_py ${PYBIND_SOURCES})
+    
+    # Set RPATH so that signal_sniper_py.so can find libsignal_sniper.so
+    set_target_properties(signal_sniper_py PROPERTIES INSTALL_RPATH "\$ORIGIN")
+    target_link_libraries(signal_sniper_py PRIVATE signal_sniper)
+    
+    if (ENABLE_PYTHON_INSTALL)
+        # Check if a virtual environment exists and use it if available
+        if(EXISTS "${CMAKE_SOURCE_DIR}/.venv/bin/python3")
+            set(Python3_EXECUTABLE "${CMAKE_SOURCE_DIR}/.venv/bin/python3")
+            message(STATUS "Using virtual environment Python: ${Python3_EXECUTABLE}")
         endif()
+        
+        # Run find package which will set python3_SITELIB
+        find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
-        # Set RPATH so that signal_sniper_python.so can find libsignal_sniper.so
-        set_target_properties(signal_sniper_python PROPERTIES INSTALL_RPATH "\$ORIGIN")
-        target_link_libraries(signal_sniper_python PRIVATE signal_sniper)
-
+        # Ensure Python3_SITELIB is set
+        if(NOT Python3_SITELIB)
+            message(FATAL_ERROR "CMake did not detect Python3_SITELIB. Ensure Python3 is properly found.")
+        endif()
         message("Installing pybind modules at: ${Python3_SITELIB}")
         install(TARGETS signal_sniper DESTINATION ${Python3_SITELIB})
-        install(TARGETS signal_sniper_python DESTINATION ${Python3_SITELIB})
-    else()
-        message(WARNING "No test files found in tests/ directory. Skipping test target.")
+        install(TARGETS signal_sniper_py DESTINATION ${Python3_SITELIB})
     endif()
 endif()
 

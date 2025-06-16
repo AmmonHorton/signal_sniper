@@ -1,5 +1,5 @@
 import numpy as np
-import signal_sniper_python as ssp
+import signal_sniper_py as ssp
 
 def validate_convolve_stride():
     # Create a test signal
@@ -8,7 +8,7 @@ def validate_convolve_stride():
     # Create a filter
     filter_coeffs = np.array([0.2, 0.5, 0.2])
 
-    input_signal = np.arange(40)
+    input_signal = np.arange(20, 60)
     filter_coeffs = np.arange(20)
 
     # Define strides

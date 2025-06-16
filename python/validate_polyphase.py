@@ -1,5 +1,5 @@
 import numpy as np
-import signal_sniper_python as ssp
+import signal_sniper_py as ssp
 
 def validate_polyphase():
     # Create a test signal

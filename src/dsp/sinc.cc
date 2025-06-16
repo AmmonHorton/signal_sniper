@@ -13,12 +13,12 @@ LowPassFilter::LowPassFilter(int num_taps, double corner_frequency)
 }
 
 // Get the filter coefficients
-const cdouble_vec& LowPassFilter::get_filter_coeffs() const {
+const cfloat_vec& LowPassFilter::get_filter_coeffs() const {
     return filter_coeffs;
 }
 
 // Filter the input signal
-cdouble_vec LowPassFilter::filter(const cdouble_vec& input_signal) {
+cfloat_vec LowPassFilter::filter(const cfloat_vec& input_signal) {
     return convolver.overlap_save(input_signal, true);
 }
 
@@ -32,15 +32,15 @@ void LowPassFilter::calculate_filter_coeffs() {
 }
 
 // Create a sinc function
-cdouble_vec make_sinc(int num_taps, double corner_frequency) {
-    cdouble_vec sinc(num_taps);
+cfloat_vec make_sinc(int num_taps, double corner_frequency) {
+    cfloat_vec sinc(num_taps);
     double M = num_taps - 1;
     double fc = corner_frequency;
     for (int n = 0; n < num_taps; ++n) {
         if (n == M / 2) {
-            sinc[n] = cdouble(2 * fc, 0.0);
+            sinc[n] = cfloat(2 * fc, 0.0);
         } else {
-            sinc[n] = cdouble(sin(2 * M_PI * fc * (n - M / 2)) / (M_PI * (n - M / 2)), 0.0);
+            sinc[n] = cfloat(sin(2 * M_PI * fc * (n - M / 2)) / (M_PI * (n - M / 2)), 0.0);
         }
     }
     return sinc;
@@ -57,7 +57,7 @@ std::vector<double> make_hamming(int num_taps) {
 }
 
 // Spectral inversion
-void spectral_invert(cdouble_vec& filter_coeffs) {
+void spectral_invert(cfloat_vec& filter_coeffs) {
     for (int i = 0; i < filter_coeffs.size(); ++i) {
         filter_coeffs[i] = -filter_coeffs[i];
     }

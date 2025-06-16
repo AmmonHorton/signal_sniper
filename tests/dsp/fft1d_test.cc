@@ -25,8 +25,8 @@ TEST(FFT1DTest, MoveAssignment) {
 TEST(FFT1DTest, ExecuteForward) {
     // Test forward FFT execution
     dsp::fft::FFT1D fft(16);
-    cdouble_vec input(16, cdouble(1.0, 0.0));
-    cdouble_vec output(16, cdouble(1.0, 0.0));
+    cfloat_vec input(16, cfloat(1.0, 0.0));
+    cfloat_vec output(16, cfloat(1.0, 0.0));
     fft.execute(input, output, false);
     EXPECT_EQ(output.size(), 16);
 }
@@ -34,8 +34,8 @@ TEST(FFT1DTest, ExecuteForward) {
 TEST(FFT1DTest, ExecuteBackward) {
     // Test backward FFT execution
     dsp::fft::FFT1D fft(16);
-    cdouble_vec input(16, cdouble(1.0, 0.0));
-    cdouble_vec output(16, cdouble(1.0, 0.0));
+    cfloat_vec input(16, cfloat(1.0, 0.0));
+    cfloat_vec output(16, cfloat(1.0, 0.0));
     fft.execute(input, output, true);
     EXPECT_EQ(output.size(), 16);
 }
