@@ -124,8 +124,8 @@ if(ENABLE_PYBIND)
         install(TARGETS signal_sniper_py DESTINATION ${Python3_SITELIB})
     elseif (BUILD_WHEEL)
         # If building for python .whl, install to the current directory
-        install(TARGETS signal_sniper_plot DESTINATION .)
-        install(TARGETS signal_sniper_plot_py DESTINATION .)
+        install(TARGETS signal_sniper DESTINATION .)
+        install(TARGETS signal_sniper_py DESTINATION .)
     endif()
 endif()
 

@@ -17,7 +17,7 @@ before-all = "yum install -y fftw-devel eigen3-devel"
 [project]
 name = "signal_sniper_py"
 version = "0.1.0"
-description = "A C++ plotting library with a pybind11 Python wrapper"
+description = "A C++ dsp library with a pybind11 Python wrapper"
 authors = [
     { name = "Ammon Horton", email = "aj_horton@hotmail.com" }
 ]

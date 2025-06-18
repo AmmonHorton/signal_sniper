@@ -28,7 +28,6 @@ jobs:
     - name: Build wheels
       env:
         CIBW_BEFORE_BUILD_LINUX: yum install -y libX11-devel
-        CIBW_SKIP: pp* *-musllinux*
         CIBW_LOG_LEVEL: DEBUG
       run: |
         cibuildwheel --output-dir dist
