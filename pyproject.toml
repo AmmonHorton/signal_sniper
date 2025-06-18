@@ -1,0 +1,64 @@
+[build-system]
+requires = [
+    "scikit-build-core>=0.8.0",
+    "pybind11",
+    "setuptools",
+    "wheel"
+]
+build-backend = "scikit_build_core.build"
+
+
+[tool.cibuildwheel]
+# Build FFTW/Eigen before your Python wheel build
+build = ["cp38-manylinux_x86_64","cp39-manylinux_x86_64","cp310-manylinux_x86_64", "cp311-manylinux_x86_64"]
+before-all = "yum install -y fftw-devel eigen3-devel"
+
+
+[project]
+name = "signal_sniper_py"
+version = "0.1.0"
+description = "A C++ plotting library with a pybind11 Python wrapper"
+authors = [
+    { name = "Ammon Horton", email = "aj_horton@hotmail.com" }
+]
+readme = "docs/README.md"
+requires-python = ">=3.7"
+license = { file = "docs/LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux"
+]
+dependencies = [
+    # No runtime Python deps yet
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov"
+]
+
+
+[tool.scikit-build]
+build-dir = "build"
+build.targets = ["signal_sniper_py", "signal_sniper"]
+
+[tool.scikit-build.cmake]
+version = ">=3.16"
+args = [
+    "-DENABLE_PYBIND=ON",
+    "-DBUILD_WHEEL=ON",
+]
+
+[tool.scikit-build.sdist]
+include = [
+    "src/**/*",
+    "inc/**/*",
+    "pybind_src/**/*",
+    "python/**/*",
+    "CMakeLists.txt",
+    "README.md",
+    "LICENSE"
+]

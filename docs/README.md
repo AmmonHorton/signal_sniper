@@ -2,13 +2,6 @@
 
 Signal Sniper is an open-source DSP library designed for various signal and communications applications. It provides efficient implementations of common DSP operations using Eigen and FFTW3.
 
-## Features
-
-- Fast Fourier Transform (FFT) using FFTW3
-- Convolution and correlation operations
-- Python bindings using Pybind11
-- Unit testing with GoogleTest
-
 ## Dependencies
 
 Before building the project, ensure that the following dependencies are installed:
@@ -57,45 +50,6 @@ If you prefer to run CMake manually, you can use the following flags to customiz
 - `ENABLE_PYBIND`: Enable Pybind11 Python bindings (default: OFF)
 - `BUILD_RPM`: Build an RPM package (default: OFF)
 - `BUILD_DEB`: Build a Debian package (default: OFF)
-- `INSTALL_TO_SYSTEM`: Install to the local system (default: OFF)
-
-#### Example: Build with Tests and Python Bindings
-
-1. **Create Build Directory**:
-   ```
-   mkdir -p build && cd build
-   ```
-
-2. **Run CMake**:
-   ```
-   cmake .. -DENABLE_TESTS=ON -DENABLE_PYBIND=ON
-   ```
-
-3. **Build the Project**:
-   ```
-   make -j$(nproc)
-   ```
-
-4. **Install the Project**:
-   ```
-   make install
-   ```
-
-### Building Packages
-
-#### Build RPM Package
-
-1. **Run the RPM Build Script**:
-   ```
-   ./scripts/build_rpm.sh
-   ```
-
-#### Build Debian Package
-
-1. **Run the Debian Build Script**:
-   ```
-   ./scripts/build_deb.sh
-   ```
 
 ## Running Tests
 

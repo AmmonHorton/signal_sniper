@@ -11,6 +11,7 @@ option(ENABLE_PYBIND "Enable Pybind11 Python Binding Compilation" OFF)
 option(ENABLE_PYTHON_INSTALL "Enable Pybind11 python installation - Must have ENABLE_PYBIND set" OFF)
 option(BUILD_RPM "Build an RPM package" OFF)
 option(BUILD_DEB "Build a Debian package" OFF)
+option(BUILD_WHEEL "Build a/install for python whele" OFF)
 
 # Optimization and Warning Options
 option(ENABLE_OPTIMIZED_BUILD "Enable optimized (-O2) compilation" OFF)
@@ -121,6 +122,10 @@ if(ENABLE_PYBIND)
         message("Installing pybind modules at: ${Python3_SITELIB}")
         install(TARGETS signal_sniper DESTINATION ${Python3_SITELIB})
         install(TARGETS signal_sniper_py DESTINATION ${Python3_SITELIB})
+    elseif (BUILD_WHEEL)
+        # If building for python .whl, install to the current directory
+        install(TARGETS signal_sniper_plot DESTINATION .)
+        install(TARGETS signal_sniper_plot_py DESTINATION .)
     endif()
 endif()
 
