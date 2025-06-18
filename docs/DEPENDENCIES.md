@@ -13,6 +13,7 @@ These dependencies **are NOT handled by the virtual environment** and must be in
 
 | Dependency  | Purpose |
 |------------|---------|
+| **g++ 23** | G++ compiler for c++ 23 |
 | **Eigen3** | Linear algebra (used for signal processing) |
 | **FFTW3**  | Fast Fourier Transform library |
 | **GoogleTest** | Unit testing framework |
