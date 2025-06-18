@@ -1,0 +1,39 @@
+name: Build wheels
+
+on:
+  push:
+    tags:
+      - "v*"
+    branches:
+      - master
+
+jobs:
+  build_wheels:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install cibuildwheel
+      run: pip install cibuildwheel
+
+    - name: Build wheels
+      env:
+        CIBW_BEFORE_BUILD_LINUX: yum install -y libX11-devel
+        CIBW_SKIP: pp* *-musllinux*
+        CIBW_LOG_LEVEL: DEBUG
+      run: |
+        cibuildwheel --output-dir dist
+    
+    - name: Check wheels
+      run: |
+        pip install twine
+        twine check dist/*
